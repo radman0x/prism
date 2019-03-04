@@ -1,0 +1,3 @@
+[submodule "src/assets/dawnlike"]
+	path = src/assets/dawnlike
+	url = git@github.com:radman0x/dawnlike
