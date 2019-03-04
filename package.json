@@ -19,10 +19,13 @@
     "@angular/platform-browser": "~7.2.0",
     "@angular/platform-browser-dynamic": "~7.2.0",
     "@angular/router": "~7.2.0",
+    "@types/graphlib": "^2.1.4",
     "bootstrap": "^4.3.1",
     "core-js": "^2.5.4",
+    "graphlib": "^2.1.7",
     "pixi.js": "^5.0.0-rc.2",
     "rad-ecs": "^0.2.0",
+    "rot-js": "^2.0.3",
     "rxjs": "~6.3.3",
     "tslib": "^1.9.0",
     "zone.js": "~0.8.26"

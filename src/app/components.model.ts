@@ -59,3 +59,12 @@ export class PhysicalMove extends Component {
     super();
   }
 }
+
+export class Health extends Component {
+  constructor(
+    public readonly current: number,
+    public readonly max: number
+  ) {
+    super();
+  }
+}

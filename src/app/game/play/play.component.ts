@@ -1,8 +1,10 @@
 import { Movement } from './../../systems/movement';
-import { Dimensions, DIR_FROM_KEY, DIR_VECTORS } from './../../../utils';
+import { Dimensions, DIR_FROM_KEY, DIR_VECTORS, randomInt } from './../../../utils';
 import { Component, OnInit, Input, HostListener } from '@angular/core';
 import { EcsService } from 'src/ecs.service';
 import { Renderable, Position, Size, Physical, PhysicalMove } from 'src/app/components.model';
+
+import * as ROT from 'rot-js';
 
 @Component({
   selector: 'app-play',
@@ -23,7 +25,7 @@ export class PlayComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.playerId = this.initLevel();
+    this.initLevel();
 
     this.ecs.addSystem( new Movement() );
   }
@@ -32,30 +34,52 @@ export class PlayComponent implements OnInit {
     return this.dimensions;
   }
 
-  initLevel(): number {
-    for (let x = 0; x < this.LEVEL_WIDTH; ++x) {
-      for (let y = 0; y < this.LEVEL_HEIGHT; ++y) {
-        if (x === 0 || x === this.LEVEL_WIDTH-1 || y === 0 || y === this.LEVEL_HEIGHT-1 ) {
-          this.ecs.em.createEntity(
-            new Renderable('Wall-188.png', 1),
-            new Position(x, y, 0),
-            new Physical(Size.FILL)
-          )          
-        }
-        this.ecs.em.createEntity(
-          new Renderable('Floor-48.png', 0),
-          new Position(x, y, -1),
-          new Physical(Size.FILL)
-        )
-      }
-    }
+initLevel(): void {
+  let world = new ROT.Map.Uniform(this.LEVEL_WIDTH, this.LEVEL_HEIGHT, {roomDugPercentage: 0.9});
 
-    return this.ecs.em.createEntity(
-      new Renderable('Player0-22.png', 10),
-      new Position(4, 4, 0),
-      new Physical(Size.MEDIUM)
-    ).id();
-  }
+  let em = this.ecs.em;
+  world.create( (x: number, y: number, contents: number) => {
+    em.createEntity( 
+      new Position(x, y, -1),
+      new Renderable('Floor-48.png', 0),
+      new Physical(Size.FILL)
+    )
+
+    if (contents === 1) {
+      em.createEntity( 
+        new Position(x, y, 0),
+        new Renderable('Wall-188.png', 1),
+        new Physical(Size.FILL)
+      )
+    }
+  });
+
+  let rooms = world.getRooms();
+  let playerRoomNum = randomInt(0, rooms.length -1);
+  console.log(`player room num: ${playerRoomNum}`);
+  let playerRoom = rooms[playerRoomNum];
+  console.log(`player pos: ${playerRoom.getCenter()}`);
+  this.playerId = em.createEntity(
+    new Position(playerRoom.getCenter()[0], playerRoom.getCenter()[1], 0),
+    new Renderable("Player0-22.png", 1),
+    new Physical(Size.MEDIUM)
+  ).id();
+
+  // let remainingRooms = rooms.filter( (r: Room, i: number) => i !== playerRoomNum);
+  // let enemyRoom = remainingRooms[ randomInt(0, remainingRooms.length -1) ];
+  // console.log(`Enemy pos: ${enemyRoom.getCenter()}`);
+  // em.createEntity(
+  //   new Position(enemyRoom.getCenter()[0], enemyRoom.getCenter()[1], 0),
+  //   new Renderable("Player0-61.png", 1),
+  //   new Combat(7, 3, 1),
+  //   new Health(10, 10),
+  //   new AI(100, 0)
+  // );
+
+  // this.wallClockId = em.createEntity(
+  //   new Clock('wall-clock', 0)
+  // ).id();
+}
 
   @HostListener('window:keypress', ['$event'])
   handleMoveInput(e: KeyboardEvent) {
