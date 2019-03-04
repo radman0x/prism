@@ -52,7 +52,6 @@ export class WorldDisplayComponent implements OnInit, AfterViewInit {
   ngOnChanges() {
     if ( this.pixiApp ) {
       this.pixiApp.renderer.resize(this.dimensions.width, this.dimensions.height - this.HACK_REDUCE_HEIGHT);
-      this.setPixiScale();
     }
   }
 
@@ -71,13 +70,15 @@ export class WorldDisplayComponent implements OnInit, AfterViewInit {
       const [r, p] = e.components(Renderable, Position);
       let sprite = this.spriteRegister.get(e.id());
       if ( ! sprite ) {
-        
+        console.log(`creating new sprite`);
         sprite = new PIXI.Sprite(this.textures[r.image]);
+        this.spriteRegister.set(e.id(), sprite);
         this.pixiApp.stage.addChild(sprite);
       }
-      const renderPos = p.multiply(this.TILE_SIZE);
-      sprite.position.set(renderPos.x, renderPos.y);
+      sprite.position.set(p.x * this.TILE_SIZE, p.y * this.TILE_SIZE);
     }
+
+    this.setPixiScale();
   }
 
   private setPixiScale(): void {
