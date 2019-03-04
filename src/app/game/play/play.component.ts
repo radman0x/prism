@@ -1,10 +1,14 @@
-import { Movement } from './../../systems/movement';
+import { PlayerControl, InputHandler, ChooseTarget } from './input-handler.model';
+import { Health, Sight, Dynamism } from './../../components.model';
+import { Movement } from '../../systems/movement.model';
 import { Dimensions, DIR_FROM_KEY, DIR_VECTORS, randomInt } from './../../../utils';
 import { Component, OnInit, Input, HostListener } from '@angular/core';
 import { EcsService } from 'src/ecs.service';
 import { Renderable, Position, Size, Physical, PhysicalMove } from 'src/app/components.model';
 
 import * as ROT from 'rot-js';
+import { Room } from 'rot-js/lib/map/features';
+import { FOVManager } from 'src/app/systems/fov.model';
 
 @Component({
   selector: 'app-play',
@@ -20,6 +24,8 @@ export class PlayComponent implements OnInit {
   private LEVEL_WIDTH = 44;
   private LEVEL_HEIGHT = 21;
 
+  private inputState: InputHandler;
+
   constructor(
     private ecs: EcsService
   ) { }
@@ -28,6 +34,8 @@ export class PlayComponent implements OnInit {
     this.initLevel();
 
     this.ecs.addSystem( new Movement() );
+    this.ecs.addSystemAndUpdate( new FOVManager() );
+    this.inputState = new PlayerControl(this.playerId, this.ecs, (h: InputHandler) => this.inputState = h);
   }
 
   worldDisplaySize(): Dimensions {
@@ -42,14 +50,14 @@ initLevel(): void {
     em.createEntity( 
       new Position(x, y, -1),
       new Renderable('Floor-48.png', 0),
-      new Physical(Size.FILL)
+      new Physical(Size.FILL, Dynamism.STATIC)
     )
 
     if (contents === 1) {
       em.createEntity( 
         new Position(x, y, 0),
         new Renderable('Wall-188.png', 1),
-        new Physical(Size.FILL)
+        new Physical(Size.FILL, Dynamism.STATIC)
       )
     }
   });
@@ -62,49 +70,54 @@ initLevel(): void {
   this.playerId = em.createEntity(
     new Position(playerRoom.getCenter()[0], playerRoom.getCenter()[1], 0),
     new Renderable("Player0-22.png", 1),
-    new Physical(Size.MEDIUM)
+    new Physical(Size.MEDIUM, Dynamism.DYNAMIC),
+    new Sight(100)
   ).id();
 
-  // let remainingRooms = rooms.filter( (r: Room, i: number) => i !== playerRoomNum);
-  // let enemyRoom = remainingRooms[ randomInt(0, remainingRooms.length -1) ];
-  // console.log(`Enemy pos: ${enemyRoom.getCenter()}`);
-  // em.createEntity(
-  //   new Position(enemyRoom.getCenter()[0], enemyRoom.getCenter()[1], 0),
-  //   new Renderable("Player0-61.png", 1),
-  //   new Combat(7, 3, 1),
-  //   new Health(10, 10),
-  //   new AI(100, 0)
-  // );
+  let remainingRooms = rooms.filter( (r: Room, i: number) => i !== playerRoomNum);
+  let enemyRoom = remainingRooms[ randomInt(0, remainingRooms.length -1) ];
+  console.log(`Enemy pos: ${enemyRoom.getCenter()}`);
+  em.createEntity(
+    new Position(enemyRoom.getCenter()[0], enemyRoom.getCenter()[1], 0),
+    new Renderable("Undead0-41.png", 1),
+    new Health(10, 10),
+    new Physical(Size.MEDIUM, Dynamism.DYNAMIC)
+  );
 
-  // this.wallClockId = em.createEntity(
-  //   new Clock('wall-clock', 0)
-  // ).id();
 }
 
   @HostListener('window:keypress', ['$event'])
   handleMoveInput(e: KeyboardEvent) {
-    if ( e.key === '5') {
-      console.log(`Player resting...`);
-      this.ecs.update(); // hack for testing
+    console.log(`Key input: ${e.key}`);
+    const changeState = (h: InputHandler) => {
+      this.inputState = h;
+    };
+
+    if ( ! this.ecs.em.exists(this.playerId) ) {
+      console.log(`player is gone yo :O`);
       return;
     }
-    if ( DIR_FROM_KEY.has(e.key) ) {
-      console.log(`move key received: ${e.key}`);
-      if ( this.ecs.em.exists(this.playerId) ) {
-        console.log(`player exists`);
-        let moveDir = DIR_VECTORS.get(DIR_FROM_KEY.get(e.key));
-        let playerPos = this.ecs.em.get(this.playerId).component(Position);
-        this.ecs.em.setComponent(this.playerId, 
-          new PhysicalMove(
-            new Position(playerPos.x + moveDir[0], playerPos.y + moveDir[1], playerPos.z)
-          )
-        );
+    if ( e.key === 'f') {
+      const player = this.ecs.em.get(this.playerId);
+      this.inputState = new ChooseTarget(
+        player.component(Position), 
+        this.playerId,
+        () => {}, // radTODO: fill this with a useful action
+        this.ecs, 
+        changeState
+      );
+      return;
+    }
 
-        // this.ecs.em.setComponent(this.playerId, new IncrementTime(100));
-        this.ecs.update(); // for player
-        // this.ecs.update(); // for AI
+    if (this.inputState) {
+      this.inputState.handleKey(e);
+    }
+  }
 
-      }
+  @HostListener('window:keyup.escape', ['$event'])
+  handleEsc(e: KeyboardEvent) {
+    if ( this.inputState ) {
+      this.inputState.handleKey(e);
     }
   }
 }

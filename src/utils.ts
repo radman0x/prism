@@ -98,6 +98,10 @@ export class Coord {
     return new Coord(this.x - rhs.x, this.y - rhs.y, this.z - rhs.z);
   }
 
+  add(rhs: Coord): Coord {
+    return new Coord(this.x + rhs.x, this.y + rhs.y, this.z + rhs.z);
+  }
+
   static fromString(input: string): Coord | never {
     const re = /^{(\d+(.\d+)?), (\d+(.\d+)?), (\d+(.\d+)?)}$/;
     const result = re.exec(input);

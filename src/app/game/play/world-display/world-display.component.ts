@@ -4,7 +4,7 @@ import { Dimensions } from 'src/utils';
 import * as PIXI from 'pixi.js';
 import { EcsService } from 'src/ecs.service';
 import { Entity } from 'rad-ecs';
-import { Renderable, Position } from 'src/app/components.model';
+import { Renderable, Position, Knowledge, KnownState, Dynamism, Physical, ClearRender } from 'src/app/components.model';
 
 @Component({
   selector: 'app-world-display',
@@ -32,6 +32,7 @@ export class WorldDisplayComponent implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit() {
+    PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
     this.pixiApp = new PIXI.Application({
       width: this.dimensions.width,
       height: this.dimensions.height
@@ -63,19 +64,56 @@ export class WorldDisplayComponent implements OnInit, AfterViewInit {
   }
 
   renderLoop(): void {
+    this.pixiApp.stage.destroy();
+    this.pixiApp.stage = new PIXI.Container();
+
+    this.ecs.em.each( (e: Entity, cr: ClearRender) => {
+      let clearSprite = this.spriteRegister.get(cr.clearId);
+      if (clearSprite) {
+        clearSprite.destroy();
+        this.spriteRegister.delete(cr.clearId);
+      }
+      this.ecs.em.removeEntity(e.id());
+    }, ClearRender);
+
     let renderables = this.ecs.em.matching(Renderable, Position);
     renderables.sort( (lhs: Entity, rhs: Entity) => lhs.component(Renderable).zOrder - rhs.component(Renderable).zOrder);
 
+    const knowledge = this.ecs.em.matching(Knowledge).reduce( (accum, curr) => curr, null );
+    const positionKnowledge = knowledge ? knowledge.component(Knowledge).positions : null;
+    
     for (const e of renderables) {
       const [r, p] = e.components(Renderable, Position);
+      const y = e.has(Physical) ? e.component(Physical) : null;
       let sprite = this.spriteRegister.get(e.id());
       if ( ! sprite ) {
-        console.log(`creating new sprite`);
         sprite = new PIXI.Sprite(this.textures[r.image]);
         this.spriteRegister.set(e.id(), sprite);
-        this.pixiApp.stage.addChild(sprite);
       }
       sprite.position.set(p.x * this.TILE_SIZE, p.y * this.TILE_SIZE);
+      this.pixiApp.stage.addChild(sprite);
+
+      if (positionKnowledge && y) {
+        const posKnown = positionKnowledge.get(new Position(p.x, p.y, 0));
+        if (posKnown === undefined) {
+          sprite.visible = false;
+        } else {
+          switch (posKnown) {
+            case KnownState.CURRENT:
+              sprite.visible = true;
+              sprite.tint = +'0xFFFFFF';
+              break;
+            case KnownState.REMEMBERED:
+              if (y.dynamism === Dynamism.STATIC) {
+                sprite.visible = true;
+                sprite.tint = +'0xCCCCCC';
+              } else {
+                sprite.visible = false;
+              }
+              break;
+          }
+        }
+      }
     }
 
     this.setPixiScale();

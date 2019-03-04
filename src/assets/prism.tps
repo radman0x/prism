@@ -132,7 +132,7 @@
             <key>data</key>
             <struct type="DataFile">
                 <key>name</key>
-                <filename></filename>
+                <filename>prism.json</filename>
             </struct>
         </map>
         <key>multiPack</key>
@@ -185,6 +185,8 @@
             <key type="filename">dawnlike/Characters/Undead0/Undead0-41.png</key>
             <key type="filename">dawnlike/Objects/Floor/Floor-48.png</key>
             <key type="filename">dawnlike/Objects/Wall/Wall-188.png</key>
+            <key type="filename">dawnlike/radman_additions/misc/0004_blank.png</key>
+            <key type="filename">dawnlike/radman_additions/misc/0005_select_ring.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
                 <point_f>0.5,0.5</point_f>
@@ -204,6 +206,8 @@
             <filename>dawnlike/Characters/Undead0/Undead0-41.png</filename>
             <filename>dawnlike/Objects/Floor/Floor-48.png</filename>
             <filename>dawnlike/Objects/Wall/Wall-188.png</filename>
+            <filename>dawnlike/radman_additions/misc/0004_blank.png</filename>
+            <filename>dawnlike/radman_additions/misc/0005_select_ring.png</filename>
         </array>
         <key>ignoreFileList</key>
         <array/>

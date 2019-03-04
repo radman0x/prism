@@ -1,4 +1,4 @@
-import { Coord } from './../utils';
+import { Coord, ValueMap } from './../utils';
 import { Component } from "rad-ecs";
 
 export class Renderable extends Component {
@@ -28,8 +28,14 @@ export class Position extends Component {
   get y(): number { return this.coord.y; }
   get z(): number { return this.coord.z; }
 
-  multiply(factor: number): Position {
-    return new Position(this.x * factor, this.y * factor, this.z * factor);
+  subtract(rhs: Position): Position {
+    let newCoord = rhs.coord.subtract(this.coord);
+    return new Position(newCoord.x, newCoord.y, newCoord.z);
+  }
+
+  add(rhs: Position): Position {
+    let newCoord = rhs.coord.add(this.coord);
+    return new Position(newCoord.x, newCoord.y, newCoord.z);
   }
 
   hash(): string {
@@ -44,9 +50,15 @@ export enum Size {
   FILL
 }
 
+export enum Dynamism {
+  STATIC,
+  DYNAMIC
+}
+
 export class Physical extends Component {
   constructor(
-    public readonly size: Size
+    public readonly size: Size,
+    public readonly dynamism: Dynamism
   ) {
     super();
   }
@@ -67,4 +79,36 @@ export class Health extends Component {
   ) {
     super();
   }
+}
+
+export enum KnownState   {
+  UNKNOWN,
+  CURRENT,
+  REMEMBERED
+}
+
+export class Knowledge extends Component {
+  constructor(
+    public readonly positions: ValueMap<Position, KnownState>
+  ) {
+    super();
+  }
+}
+
+export class Sight extends Component {
+  constructor(
+    public readonly range: number
+  ) {
+    super();
+  }
+}
+
+export class ClearRender extends Component {
+  constructor(
+    public readonly clearId
+  ) {
+    super();
+  }
+
+
 }

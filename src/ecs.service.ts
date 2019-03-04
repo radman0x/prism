@@ -19,6 +19,11 @@ export class EcsService {
     this.systems.push(s);
   }
 
+  addSystemAndUpdate(s: System): void {
+    s.update(this.em);
+    this.systems.push(s);
+  }
+
   update(): void {
     for (let s of this.systems) {
       s.update(this.em);
