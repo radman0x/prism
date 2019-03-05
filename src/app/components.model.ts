@@ -33,6 +33,10 @@ export class Position extends Component {
     return new Position(newCoord.x, newCoord.y, newCoord.z);
   }
 
+  normalise(): void {
+    this.coord.normalise();
+  }
+
   add(rhs: Position): Position {
     let newCoord = rhs.coord.add(this.coord);
     return new Position(newCoord.x, newCoord.y, newCoord.z);
@@ -105,10 +109,24 @@ export class Sight extends Component {
 
 export class ClearRender extends Component {
   constructor(
-    public readonly clearId
+    public readonly clearId: number
   ) {
     super();
   }
+}
 
+export class Velocity extends Component {
+  constructor(
+    public readonly direction: {x: number, y: number}
+  ) {
+    super();
+  }
+}
 
+export class Aimed extends Component {
+  constructor(
+    public readonly target: Position
+  ) {
+    super();
+  }
 }

@@ -1,5 +1,5 @@
 import { PlayerControl, InputHandler, ChooseTarget } from './input-handler.model';
-import { Health, Sight, Dynamism } from './../../components.model';
+import { Health, Sight, Dynamism, Velocity, Aimed } from './../../components.model';
 import { Movement } from '../../systems/movement.model';
 import { Dimensions, DIR_FROM_KEY, DIR_VECTORS, randomInt } from './../../../utils';
 import { Component, OnInit, Input, HostListener } from '@angular/core';
@@ -9,6 +9,10 @@ import { Renderable, Position, Size, Physical, PhysicalMove } from 'src/app/comp
 import * as ROT from 'rot-js';
 import { Room } from 'rot-js/lib/map/features';
 import { FOVManager } from 'src/app/systems/fov.model';
+import { Projectiles } from 'src/app/systems/projectiles';
+import { Reaper } from 'src/app/systems/reaper';
+
+const clone = require('clone');
 
 @Component({
   selector: 'app-play',
@@ -36,6 +40,8 @@ export class PlayComponent implements OnInit {
     this.ecs.addSystem( new Movement() );
     this.ecs.addSystemAndUpdate( new FOVManager() );
     this.inputState = new PlayerControl(this.playerId, this.ecs, (h: InputHandler) => this.inputState = h);
+    this.ecs.addSystem( new Projectiles() );
+    this.ecs.addSystem( new Reaper() );
   }
 
   worldDisplaySize(): Dimensions {
@@ -83,6 +89,12 @@ initLevel(): void {
     new Health(10, 10),
     new Physical(Size.MEDIUM, Dynamism.DYNAMIC)
   );
+  em.createEntity(
+    new Position(enemyRoom.getCenter()[0]+1, enemyRoom.getCenter()[1], 0),
+    new Renderable("Undead0-41.png", 1),
+    new Health(10, 10),
+    new Physical(Size.MEDIUM, Dynamism.DYNAMIC)
+  );
 
 }
 
@@ -97,12 +109,20 @@ initLevel(): void {
       console.log(`player is gone yo :O`);
       return;
     }
-    if ( e.key === 'f') {
+    if ( e.key === '/') {
       const player = this.ecs.em.get(this.playerId);
       this.inputState = new ChooseTarget(
         player.component(Position), 
         this.playerId,
-        () => {}, // radTODO: fill this with a useful action
+        (o: Position, t: Position, d: Position) => {
+          this.ecs.em.createEntity(
+            new Velocity(d),
+            new Aimed(t),
+            o,  
+            new Physical(Size.SMALL, Dynamism.STATIC)
+          );
+          this.ecs.update();
+        },
         this.ecs, 
         changeState
       );

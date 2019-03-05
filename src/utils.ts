@@ -90,6 +90,16 @@ export class Coord {
     return `{${this.x}, ${this.y}, ${this.z}}`;
   }
 
+  normalise(): void {
+    const mag = this.magnitude();
+    this.x = this.x / mag;
+    this.y = this.y / mag;
+    this.z = this.z / mag;
+  }
+
+  magnitude(): number {
+    return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2) + Math.pow(this.z, 2));
+  }
   hash(): string {
     return `${this.x},${this.y},${this.z}`
   }

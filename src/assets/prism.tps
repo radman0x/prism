@@ -187,6 +187,9 @@
             <key type="filename">dawnlike/Objects/Wall/Wall-188.png</key>
             <key type="filename">dawnlike/radman_additions/misc/0004_blank.png</key>
             <key type="filename">dawnlike/radman_additions/misc/0005_select_ring.png</key>
+            <key type="filename">dawnlike/radman_additions/misc/0006_invalid_select_ring.png</key>
+            <key type="filename">dawnlike/radman_additions/misc/0007_spot_highlight.png</key>
+            <key type="filename">dawnlike/radman_additions/misc/0008_spot_invalid.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
                 <point_f>0.5,0.5</point_f>
@@ -208,6 +211,9 @@
             <filename>dawnlike/Objects/Wall/Wall-188.png</filename>
             <filename>dawnlike/radman_additions/misc/0004_blank.png</filename>
             <filename>dawnlike/radman_additions/misc/0005_select_ring.png</filename>
+            <filename>dawnlike/radman_additions/misc/0006_invalid_select_ring.png</filename>
+            <filename>dawnlike/radman_additions/misc/0007_spot_highlight.png</filename>
+            <filename>dawnlike/radman_additions/misc/0008_spot_invalid.png</filename>
         </array>
         <key>ignoreFileList</key>
         <array/>
