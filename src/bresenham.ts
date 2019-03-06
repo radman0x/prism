@@ -14,7 +14,6 @@ export function bresenham(
   let arr: BresPos[];
   
   if(!fn) {
-    console.log(`no function provided`);
     arr = [];
     fn = function(x, y) { arr.push({ x: x, y: y }); };
   }
@@ -22,7 +21,7 @@ export function bresenham(
   const dx = x1 - x0;
   const dy = y1 - y0;
   let magnitude = Math.sqrt( Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2) );
-  console.log(`Bres: start {${x0}, ${y0}}, end: {${x1}, ${y1}}, magnitude: ${magnitude}`);
+  // console.log(`Bres: start {${x0}, ${y0}}, end: {${x1}, ${y1}}, magnitude: ${magnitude}`);
   bresenhamRange(x0, y0, dx / magnitude, dy / magnitude, magnitude, fn);
 
   return arr;
@@ -34,7 +33,7 @@ export function bresenhamRange(
   range: number,
   fn: BresReceive) 
   : void {
-  console.log(`BresRange:  start {${x0}, ${y0}}, dir: {${dx}, ${dy}}, range: ${range}`);
+  // console.log(`BresRange:  start {${x0}, ${y0}}, dir: {${dx}, ${dy}}, range: ${range}`);
   const HACK_STEP_CONSTANT = 100;
   const x1 = (dx * range) + x0;
   const y1 = (dy * range) + y0;

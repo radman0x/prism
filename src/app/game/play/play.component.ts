@@ -1,5 +1,5 @@
 import { PlayerControl, InputHandler, ChooseTarget } from './input-handler.model';
-import { Health, Sight, Dynamism, Velocity, Aimed } from './../../components.model';
+import { Health, Sight, Dynamism, Velocity, Aimed, Combat } from './../../components.model';
 import { Movement } from '../../systems/movement.model';
 import { Dimensions, randomInt } from './../../../utils';
 import { Component, OnInit, Input, HostListener } from '@angular/core';
@@ -11,6 +11,8 @@ import { Room } from 'rot-js/lib/map/features';
 import { FOVManager } from 'src/app/systems/fov.model';
 import { Projectiles } from 'src/app/systems/projectiles';
 import { Reaper } from 'src/app/systems/reaper';
+import { EntityManager } from 'rad-ecs';
+import { CombatHandler } from 'src/app/systems/combat-handler';
 
 const clone = require('clone');
 
@@ -37,6 +39,7 @@ export class PlayComponent implements OnInit {
   ngOnInit() {
     this.initLevel();
 
+    this.ecs.addSystem( new CombatHandler() );
     this.ecs.addSystem( new Movement() );
     this.ecs.addSystemAndUpdate( new FOVManager() );
     this.ecs.addSystem( new Projectiles() );
@@ -53,55 +56,56 @@ export class PlayComponent implements OnInit {
     return this.dimensions;
   }
 
-initLevel(): void {
-  let world = new ROT.Map.Uniform(this.LEVEL_WIDTH, this.LEVEL_HEIGHT, {roomDugPercentage: 0.9});
-
-  let em = this.ecs.em;
-  world.create( (x: number, y: number, contents: number) => {
-    em.createEntity( 
-      new Position(x, y, -1),
-      new Renderable('Floor-48.png', 0),
-      new Physical(Size.FILL, Dynamism.STATIC)
-    )
-
-    if (contents === 1) {
+  initLevel(): void {
+    let world = new ROT.Map.Uniform(this.LEVEL_WIDTH, this.LEVEL_HEIGHT, {roomDugPercentage: 0.9});
+  
+    let em = this.ecs.em;
+    world.create( (x: number, y: number, contents: number) => {
       em.createEntity( 
-        new Position(x, y, 0),
-        new Renderable('Wall-188.png', 1),
+        new Position(x, y, -1),
+        new Renderable('Floor-48.png', 0),
         new Physical(Size.FILL, Dynamism.STATIC)
       )
-    }
-  });
+  
+      if (contents === 1) {
+        em.createEntity( 
+          new Position(x, y, 0),
+          new Renderable('Wall-188.png', 1),
+          new Physical(Size.FILL, Dynamism.STATIC)
+        )
+      }
+    });
+  
+    let rooms = world.getRooms();
+    let playerRoomNum = randomInt(0, rooms.length -1);
+    console.log(`player room num: ${playerRoomNum}`);
+    let playerRoom = rooms[playerRoomNum];
+    console.log(`player pos: ${playerRoom.getCenter()}`);
+    this.playerId = em.createEntity(
+      new Position(playerRoom.getCenter()[0], playerRoom.getCenter()[1], 0),
+      new Renderable("Player0-22.png", 11),
+      new Physical(Size.MEDIUM, Dynamism.DYNAMIC),
+      new Sight(100),
+      new Combat(8, 5, 4)
+    ).id();
+  
+    let remainingRooms = rooms.filter( (r: Room, i: number) => i !== playerRoomNum);
+    let enemyRoom = remainingRooms[ randomInt(0, remainingRooms.length -1) ];
+    console.log(`Enemy pos: ${enemyRoom.getCenter()}`);
 
-  let rooms = world.getRooms();
-  let playerRoomNum = randomInt(0, rooms.length -1);
-  console.log(`player room num: ${playerRoomNum}`);
-  let playerRoom = rooms[playerRoomNum];
-  console.log(`player pos: ${playerRoom.getCenter()}`);
-  this.playerId = em.createEntity(
-    new Position(playerRoom.getCenter()[0], playerRoom.getCenter()[1], 0),
-    new Renderable("Player0-22.png", 11),
-    new Physical(Size.MEDIUM, Dynamism.DYNAMIC),
-    new Sight(100)
-  ).id();
+    this.createEnemy(new Position(enemyRoom.getCenter()[0], enemyRoom.getCenter()[1], 0), em);
+    this.createEnemy(new Position(enemyRoom.getCenter()[0]+1, enemyRoom.getCenter()[1], 0), em);
+  }
 
-  let remainingRooms = rooms.filter( (r: Room, i: number) => i !== playerRoomNum);
-  let enemyRoom = remainingRooms[ randomInt(0, remainingRooms.length -1) ];
-  console.log(`Enemy pos: ${enemyRoom.getCenter()}`);
-  em.createEntity(
-    new Position(enemyRoom.getCenter()[0], enemyRoom.getCenter()[1], 0),
-    new Renderable("Undead0-41.png", 10),
-    new Health(10, 10),
-    new Physical(Size.MEDIUM, Dynamism.DYNAMIC)
-  );
-  em.createEntity(
-    new Position(enemyRoom.getCenter()[0]+1, enemyRoom.getCenter()[1], 0),
-    new Renderable("Undead0-41.png", 10),
-    new Health(10, 10),
-    new Physical(Size.MEDIUM, Dynamism.DYNAMIC)
-  );
-
-}
+  private createEnemy(pos: Position, em: EntityManager): number {
+    return em.createEntity(
+      pos,
+      new Renderable("Undead0-41.png", 10),
+      new Health(10, 10),
+      new Physical(Size.MEDIUM, Dynamism.DYNAMIC),
+      new Combat(6, 4, 0)
+    ).id();
+  }
 
   @HostListener('window:keypress', ['$event'])
   handleMoveInput(e: KeyboardEvent) {

@@ -134,3 +134,13 @@ export class Aimed extends Component {
     super();
   }
 }
+
+export class Combat extends Component {
+  constructor(
+    readonly skill: number,
+    readonly damage: number,
+    readonly armor: number,
+  ) {
+    super();
+  }
+}
