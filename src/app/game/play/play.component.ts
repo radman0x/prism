@@ -1,10 +1,10 @@
 import { PlayerControl, InputHandler, ChooseTarget } from './input-handler.model';
 import { Health, Sight, Dynamism, Velocity, Aimed } from './../../components.model';
 import { Movement } from '../../systems/movement.model';
-import { Dimensions, DIR_FROM_KEY, DIR_VECTORS, randomInt } from './../../../utils';
+import { Dimensions, randomInt } from './../../../utils';
 import { Component, OnInit, Input, HostListener } from '@angular/core';
 import { EcsService } from 'src/ecs.service';
-import { Renderable, Position, Size, Physical, PhysicalMove } from 'src/app/components.model';
+import { Renderable, Position, Size, Physical } from 'src/app/components.model';
 
 import * as ROT from 'rot-js';
 import { Room } from 'rot-js/lib/map/features';
@@ -39,9 +39,14 @@ export class PlayComponent implements OnInit {
 
     this.ecs.addSystem( new Movement() );
     this.ecs.addSystemAndUpdate( new FOVManager() );
-    this.inputState = new PlayerControl(this.playerId, this.ecs, (h: InputHandler) => this.inputState = h);
     this.ecs.addSystem( new Projectiles() );
     this.ecs.addSystem( new Reaper() );
+
+    this.inputState = new PlayerControl(
+      this.playerId, 
+      this.ecs, 
+      (h: InputHandler) => this.inputState = h
+    );
   }
 
   worldDisplaySize(): Dimensions {
@@ -75,7 +80,7 @@ initLevel(): void {
   console.log(`player pos: ${playerRoom.getCenter()}`);
   this.playerId = em.createEntity(
     new Position(playerRoom.getCenter()[0], playerRoom.getCenter()[1], 0),
-    new Renderable("Player0-22.png", 1),
+    new Renderable("Player0-22.png", 11),
     new Physical(Size.MEDIUM, Dynamism.DYNAMIC),
     new Sight(100)
   ).id();
@@ -85,13 +90,13 @@ initLevel(): void {
   console.log(`Enemy pos: ${enemyRoom.getCenter()}`);
   em.createEntity(
     new Position(enemyRoom.getCenter()[0], enemyRoom.getCenter()[1], 0),
-    new Renderable("Undead0-41.png", 1),
+    new Renderable("Undead0-41.png", 10),
     new Health(10, 10),
     new Physical(Size.MEDIUM, Dynamism.DYNAMIC)
   );
   em.createEntity(
     new Position(enemyRoom.getCenter()[0]+1, enemyRoom.getCenter()[1], 0),
-    new Renderable("Undead0-41.png", 1),
+    new Renderable("Undead0-41.png", 10),
     new Health(10, 10),
     new Physical(Size.MEDIUM, Dynamism.DYNAMIC)
   );
@@ -109,7 +114,11 @@ initLevel(): void {
       console.log(`player is gone yo :O`);
       return;
     }
-    if ( e.key === '/') {
+    let consumePress = false;
+    if (this.inputState) {
+      consumePress = this.inputState.handleKey(e);
+    }
+    if ( ! consumePress && e.key === '/') {
       const player = this.ecs.em.get(this.playerId);
       this.inputState = new ChooseTarget(
         player.component(Position), 
@@ -127,10 +136,6 @@ initLevel(): void {
         changeState
       );
       return;
-    }
-
-    if (this.inputState) {
-      this.inputState.handleKey(e);
     }
   }
 

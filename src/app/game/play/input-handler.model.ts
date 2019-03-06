@@ -8,7 +8,7 @@ import { bresenham, BresPos } from 'src/bresenham';
 const deepEqual = require('deep-equal');
 
 export interface InputHandler {
-  handleKey: (e: KeyboardEvent) => void
+  handleKey: (e: KeyboardEvent) => boolean
 }
 
 export class PlayerControl implements InputHandler {
@@ -18,11 +18,11 @@ export class PlayerControl implements InputHandler {
     private changeState: (s: InputHandler) => void
   ) {}
 
-  handleKey(e: KeyboardEvent): void {
+  handleKey(e: KeyboardEvent): boolean {
     if ( e.key === '5') {
         console.log(`Player resting...`);
         this.ecs.update(); // hack for testing
-        return;
+        return false;
     }
 
     if ( DIR_FROM_KEY.has(e.key) ) {
@@ -37,13 +37,15 @@ export class PlayerControl implements InputHandler {
       // this.ecs.em.setComponent(this.playerId, new IncrementTime(100));
       this.ecs.update(); // for player
       // this.ecs.update(); // for AI
-    } 
+    }
+    return false; 
   }
 }
 
 export class ChooseTarget implements InputHandler {
   private displayId: number;
   private pathHighlight: number[] = [];
+  private startPoint: Position;
 
   constructor(
     private currentTarget: Position,
@@ -53,18 +55,23 @@ export class ChooseTarget implements InputHandler {
     private changeState: (s: InputHandler) => void
   ) {
     this.updateDisplay();
+    this.startPoint = currentTarget;
 
   }
 
-  handleKey(e: KeyboardEvent): void {
+  handleKey(e: KeyboardEvent): boolean {
+    if (e.key === '/') {
+      console.log(`should consume`);
+      return true; // ignore 
+    }
     if (e.key === 'Escape' || e.key === 'Delete') {
       this.cleanup();
       this.leave();
-      return;
+      return false;
     }
     if (e.key === 'Enter') {
       this.cleanup();
-      if (this.posTargetable(this.currentTarget)) {
+      if ( ! deepEqual(this.currentTarget, this.startPoint) && this.posTargetable(this.currentTarget)) {
         const playerPos = this.ecs.em.get(this.playerId).component(Position);
         this.callback(
           playerPos,
@@ -73,7 +80,7 @@ export class ChooseTarget implements InputHandler {
         );
       }
       this.leave();
-      return;
+      return false;
     }
     if ( DIR_FROM_KEY.has(e.key) ) {
       let moveDir = DIR_VECTORS.get(DIR_FROM_KEY.get(e.key));

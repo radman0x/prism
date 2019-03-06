@@ -1,0 +1,20 @@
+{"frames": {
+
+"yellow-ball.png":
+{
+	"frame": {"x":0,"y":0,"w":8,"h":8},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":8,"h":8},
+	"sourceSize": {"w":8,"h":8}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "smaller.png",
+	"format": "RGBA8888",
+	"size": {"w":8,"h":8},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:31a73930a6aa4f670e51b0473c5932ae:35076453bdb9216bcbc0e7a7637efe1b:9e1c575e55a671cb77c90a58828def80$"
+}
+}

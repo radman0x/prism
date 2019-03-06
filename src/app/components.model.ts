@@ -5,7 +5,11 @@ export class Renderable extends Component {
 
   constructor(
     public readonly image: string,
-    public readonly zOrder: number
+    public readonly zOrder: number,
+    public readonly shrinkFactor?: number,
+    public readonly smaller: boolean = false,
+    public readonly subPos?: {x: number, y: number},
+    public readonly rotation?: number
   ) {
     super();
   }

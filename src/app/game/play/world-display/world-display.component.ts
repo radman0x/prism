@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
-import { Dimensions } from 'src/utils';
+import { Dimensions, randomInt } from 'src/utils';
 
 import * as PIXI from 'pixi.js';
 import { EcsService } from 'src/ecs.service';
@@ -21,9 +21,11 @@ export class WorldDisplayComponent implements OnInit, AfterViewInit {
   private DISPLAY_WIDTH_IN_TILES = 44;
   private TILE_SIZE = 16;
   private PRISM_SPRITE_SHEET = 'assets/prism.json';
+  private SMALLER_SPRITE_SHEET = 'assets/smaller.json';
   
   private pixiApp: PIXI.Application;
   private textures: PIXI.ITextureDictionary;
+  private smallTextures: PIXI.ITextureDictionary;
 
   private spriteRegister = new Map<number, PIXI.Sprite>();
   
@@ -38,9 +40,13 @@ export class WorldDisplayComponent implements OnInit, AfterViewInit {
       height: this.dimensions.height
     });
     
-    this.pixiApp.loader.add(this.PRISM_SPRITE_SHEET).load(() => {
-      this.pixiApp.ticker.add( () => this.renderLoop() );
+    this.pixiApp.loader
+      .add(this.PRISM_SPRITE_SHEET)
+      .add(this.SMALLER_SPRITE_SHEET)
+      .load(() => {
       this.textures = this.pixiApp.loader.resources[this.PRISM_SPRITE_SHEET].textures;
+      this.smallTextures = this.pixiApp.loader.resources[this.SMALLER_SPRITE_SHEET].textures;
+      this.pixiApp.ticker.add( () => this.renderLoop() );
     });
 
     this.setPixiScale();
@@ -87,10 +93,13 @@ export class WorldDisplayComponent implements OnInit, AfterViewInit {
       const y = e.has(Physical) ? e.component(Physical) : null;
       let sprite = this.spriteRegister.get(e.id());
       if ( ! sprite ) {
-        sprite = new PIXI.Sprite(this.textures[r.image]);
+        const texture = r.smaller ? this.smallTextures[r.image] : this.textures[r.image];
+        // console.log(`creating new texture: ${r.image}`);
+        sprite = new PIXI.Sprite(texture);
         this.spriteRegister.set(e.id(), sprite);
       }
-      sprite.position.set(p.x * this.TILE_SIZE, p.y * this.TILE_SIZE);
+
+      this.adjustSprite(sprite, e.id(), r, p);
       this.pixiApp.stage.addChild(sprite);
 
       if (positionKnowledge && y) {
@@ -119,6 +128,33 @@ export class WorldDisplayComponent implements OnInit, AfterViewInit {
     this.setPixiScale();
   }
 
+  private adjustSprite(s: PIXI.Sprite, id: number, r: Renderable, p: Position): void {
+    let spritePos = [p.x * this.TILE_SIZE, p.y * this.TILE_SIZE];
+    if (r.smaller) {
+      if ( ! r.subPos) {
+        const subPos = {x: spritePos[0] + randomInt(0,11), y: spritePos[1] + randomInt(0,11)};
+        const replace = new Renderable(r.image, r.zOrder, r.shrinkFactor, r.smaller, subPos, r.rotation);
+        this.ecs.em.setComponent(id, replace);
+        r = replace;
+      }  
+      spritePos = [r.subPos.x, r.subPos.y];
+
+      // if ( r.rotation === undefined ) {
+      //   const randAngle = randomInt(0, 360);
+      //   const replace = new Renderable(r.image, r.zOrder, r.shrinkFactor, r.smaller, r.subPos, randAngle);
+      //   this.ecs.em.setComponent(id, replace);
+      //   r = replace; 
+      // }
+    }
+
+    s.position.set(...spritePos);
+    // s.pivot.set(8, 8);
+    // s.angle = r.rotation !== undefined ? r.rotation : 0;
+
+    if ( r.shrinkFactor !== undefined ) {
+      s.scale.set(r.shrinkFactor, r.shrinkFactor);
+    }
+  }
   private setPixiScale(): void {
     const rawTileWidth = this.DISPLAY_WIDTH_IN_TILES * this.TILE_SIZE;
     const scale = this.dimensions.width / rawTileWidth;

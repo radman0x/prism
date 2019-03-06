@@ -48,7 +48,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
 	"sourceSize": {"w":16,"h":16}
 },
-"Player0-22.png":
+"Money-29.png":
 {
 	"frame": {"x":96,"y":0,"w":16,"h":16},
 	"rotated": false,
@@ -56,7 +56,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
 	"sourceSize": {"w":16,"h":16}
 },
-"Undead0-41.png":
+"Player0-22.png":
 {
 	"frame": {"x":112,"y":0,"w":16,"h":16},
 	"rotated": false,
@@ -64,9 +64,17 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
 	"sourceSize": {"w":16,"h":16}
 },
-"Wall-188.png":
+"Undead0-41.png":
 {
 	"frame": {"x":128,"y":0,"w":16,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
+	"sourceSize": {"w":16,"h":16}
+},
+"Wall-188.png":
+{
+	"frame": {"x":144,"y":0,"w":16,"h":16},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
@@ -79,8 +87,8 @@
 	"version": "1.0",
 	"image": "prism.png",
 	"format": "RGBA8888",
-	"size": {"w":144,"h":16},
+	"size": {"w":160,"h":16},
 	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:1295d39420e75fd287a4f56e5d6a0e03:fd724d48ce2e21ff125a782884138b7c:15966a948c055fc75a71a0b6be94c67b$"
+	"smartupdate": "$TexturePacker:SmartUpdate:2dcc20b0706a7ed4258ecba0ae53115c:1eb73de46e1984ba3069427b970c3abe:15966a948c055fc75a71a0b6be94c67b$"
 }
 }

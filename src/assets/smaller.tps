@@ -132,7 +132,7 @@
             <key>data</key>
             <struct type="DataFile">
                 <key>name</key>
-                <filename>prism.json</filename>
+                <filename></filename>
             </struct>
         </map>
         <key>multiPack</key>
@@ -181,41 +181,23 @@
         </struct>
         <key>individualSpriteSettings</key>
         <map type="IndividualSpriteSettingsMap">
-            <key type="filename">dawnlike/Characters/Player0/Player0-22.png</key>
-            <key type="filename">dawnlike/Characters/Undead0/Undead0-41.png</key>
-            <key type="filename">dawnlike/Items/Money/Money-29.png</key>
-            <key type="filename">dawnlike/Objects/Floor/Floor-48.png</key>
-            <key type="filename">dawnlike/Objects/Wall/Wall-188.png</key>
-            <key type="filename">dawnlike/radman_additions/misc/0004_blank.png</key>
-            <key type="filename">dawnlike/radman_additions/misc/0005_select_ring.png</key>
-            <key type="filename">dawnlike/radman_additions/misc/0006_invalid_select_ring.png</key>
-            <key type="filename">dawnlike/radman_additions/misc/0007_spot_highlight.png</key>
-            <key type="filename">dawnlike/radman_additions/misc/0008_spot_invalid.png</key>
+            <key type="filename">dawnlike/radman_additions/8x8/yellow-ball.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
                 <point_f>0.5,0.5</point_f>
                 <key>scale9Enabled</key>
                 <false/>
                 <key>scale9Borders</key>
-                <rect>4,4,8,8</rect>
+                <rect>2,2,4,4</rect>
                 <key>scale9Paddings</key>
-                <rect>4,4,8,8</rect>
+                <rect>2,2,4,4</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
         </map>
         <key>fileList</key>
         <array>
-            <filename>dawnlike/Characters/Player0/Player0-22.png</filename>
-            <filename>dawnlike/Characters/Undead0/Undead0-41.png</filename>
-            <filename>dawnlike/Objects/Floor/Floor-48.png</filename>
-            <filename>dawnlike/Objects/Wall/Wall-188.png</filename>
-            <filename>dawnlike/radman_additions/misc/0004_blank.png</filename>
-            <filename>dawnlike/radman_additions/misc/0005_select_ring.png</filename>
-            <filename>dawnlike/radman_additions/misc/0006_invalid_select_ring.png</filename>
-            <filename>dawnlike/radman_additions/misc/0007_spot_highlight.png</filename>
-            <filename>dawnlike/radman_additions/misc/0008_spot_invalid.png</filename>
-            <filename>dawnlike/Items/Money/Money-29.png</filename>
+            <filename>dawnlike/radman_additions/8x8/yellow-ball.png</filename>
         </array>
         <key>ignoreFileList</key>
         <array/>

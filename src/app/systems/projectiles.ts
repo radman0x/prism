@@ -12,9 +12,10 @@ export class Projectiles implements System {
 
   update(em: EntityManager): void {
     em.each( (e: Entity, v: Velocity, p: Position) => {
-      console.log(`got projectile`);
+      
       const HACK_RANGE = 20;
-      let strikePoint: Position;
+      let strikePoint: {pos: Position, wall: boolean};
+
       bresenhamRange(p.x, p.y, v.direction.x, v.direction.y, HACK_RANGE, (x: number, y: number) => {
         const currPos = new Position(x, y, 0);
         if ( ! strikePoint && ! deepEqual(currPos, p) ) {
@@ -25,25 +26,55 @@ export class Projectiles implements System {
             const baseChance = 25;
             const targetingBonus = e.has(Aimed) && deepEqual(e.component(Aimed).target, currPos) ? 50 : 0;
             const strikeChance = baseChance + targetingBonus;
+
             if (randomInt(1, 100) <= strikeChance ) {
               const targetHealth = strikeTarget.component(Health);
               if ( targetHealth ) {
                 em.setComponent(strikeTarget.id(), new Health(targetHealth.current - 5, targetHealth.max));
-                strikePoint = currPos;
+                strikePoint = {pos: currPos, wall: false};
                 console.log(`target struck and now has: ${strikeTarget.component(Health).current} hitpoints`);
               }
             }
           }
           else if (physicalAt.find( (pe: Entity) => pe.component(Physical).size === Size.FILL)) {
             console.log(`struck a wall`);
-            strikePoint = currPos;
+            strikePoint = {pos: currPos, wall: true};
+            
           }
-
         }
       });
 
+      if (strikePoint) {
+        const xUnit = Math.sign(v.direction.x) * -1;
+        const yUnit = Math.sign(v.direction.y) * -1;
+        let dropCandidates: Position[] = [];
+        if ( Math.abs(v.direction.x) >= Math.abs(v.direction.y) ) {
+          dropCandidates.push( new Position(strikePoint.pos.x + xUnit, strikePoint.pos.y, strikePoint.pos.z) );
+          dropCandidates.push( new Position(strikePoint.pos.x, strikePoint.pos.y + yUnit, strikePoint.pos.z) );
+          dropCandidates.push( new Position(strikePoint.pos.x + xUnit, strikePoint.pos.y + yUnit, strikePoint.pos.z) );
+        } else {
+          dropCandidates.push( new Position(strikePoint.pos.x, strikePoint.pos.y + yUnit, strikePoint.pos.z) );
+          dropCandidates.push( new Position(strikePoint.pos.x + xUnit, strikePoint.pos.y, strikePoint.pos.z) );
+          dropCandidates.push( new Position(strikePoint.pos.x + xUnit, strikePoint.pos.y + yUnit, strikePoint.pos.z) );
+        }
+        
+        for (const pos of dropCandidates) {
+          if ( ! this.fillAtPos(pos, em)) {
+            em.createEntity(
+              new Renderable('yellow-ball.png', 2, undefined, true),
+              pos
+            );
+            break;
+          }
+        }
+
+      } else {
+        console.log(`projectile failed to strike anything`);
+      }
+
+
       em.removeEntity(e.id());
-      
+
     }, Velocity, Position);
   }
 
