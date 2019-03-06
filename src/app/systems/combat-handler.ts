@@ -28,7 +28,7 @@ export class CombatHandler implements System {
             console.log(`attack beat targets armor!`);
             let overDamage = (hitPower - defender.armor) * this.OVER_DAMAGE_FACTOR;
             console.log(`defender suffers ${overDamage.toFixed(0)} points of OVER damage`);
-            let finalDamage = attacker.damage + overDamage;
+            let finalDamage = Math.round(attacker.damage + overDamage);
             console.log(`defender suffers ${finalDamage.toFixed(0)} points of total damage!`);
             let defenderHealth = combatTarget.component(Health);
             console.log(`health of defender is now: ${defenderHealth.current - finalDamage}`);

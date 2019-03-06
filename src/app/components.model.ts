@@ -49,6 +49,14 @@ export class Position extends Component {
   hash(): string {
     return `${this.x},${this.y},${this.z}`;
   }
+
+  asCoord(): Coord {
+    return new Coord(this.x, this.y, this.z);
+  }
+
+  static fromCoord(c: Coord): Position {
+    return new Position(c.x, c.y, c.z);
+  }
 }
 
 export enum Size {
@@ -140,6 +148,47 @@ export class Combat extends Component {
     readonly skill: number,
     readonly damage: number,
     readonly armor: number,
+  ) {
+    super();
+  }
+}
+
+export class Player extends Component {
+  constructor() {
+    super();
+  }
+}
+
+export class DijkstraMap extends Component {
+  constructor(
+    public readonly locus?: Position,
+    public readonly distanceMap?: ValueMap<Position, number>
+  ) {
+    super();
+  }
+}
+
+export class IncrementTime extends Component {
+  constructor(
+    public readonly ticks: number
+  ) {
+    super();
+  }
+}
+
+export class Clock extends Component {
+  constructor(
+    public readonly name: string,
+    public readonly currentTick: number
+  ) {
+    super();
+  }
+}
+
+export class AI extends Component {
+  constructor(
+    public readonly lastActionTick: number,
+    public readonly actionCost: number
   ) {
     super();
   }

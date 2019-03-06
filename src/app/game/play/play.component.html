@@ -1,4 +1,12 @@
+<div class="d-flex">
+  <app-world-display 
+    [dimensions]="worldDisplaySize()"
+  ></app-world-display>
 
-<app-world-display [dimensions]="worldDisplaySize()"></app-world-display>
+  <app-sidebar 
+    [ngStyle]="sidebarSize()"
+    [wallClockId]="wallclockId">
+  </app-sidebar>
+</div>
 
 <!-- add in the message log or any other UI elements here to share space-->

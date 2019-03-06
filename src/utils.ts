@@ -69,6 +69,14 @@ export class ValueMap<K extends Hashable, V> {
     }
   }
 
+  delete(key: K): void {
+    this.index.delete(key.hash());
+  }
+
+  has(key: K): boolean {
+    return this.index.has(key.hash());
+  }
+
   set(key: K, value: V) {
     this.index.set(key.hash(), {k: key, v: value});
   }

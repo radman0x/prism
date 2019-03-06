@@ -5,7 +5,7 @@ import { Velocity } from '../components.model';
 import { bresenhamRange } from 'src/bresenham';
 import { randomInt } from 'src/utils';
 
-const deepEqual = require('deep-equal');
+import * as deepEqual from 'fast-deep-equal';
 
 export class Projectiles implements System {
   constructor() {}

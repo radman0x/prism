@@ -1,5 +1,6 @@
+import { DijkstraCalculator } from './../../systems/dijkstra-calculator';
 import { PlayerControl, InputHandler, ChooseTarget } from './input-handler.model';
-import { Health, Sight, Dynamism, Velocity, Aimed, Combat } from './../../components.model';
+import { Health, Sight, Dynamism, Velocity, Aimed, Combat, Player, Clock, AI } from './../../components.model';
 import { Movement } from '../../systems/movement.model';
 import { Dimensions, randomInt } from './../../../utils';
 import { Component, OnInit, Input, HostListener } from '@angular/core';
@@ -13,8 +14,10 @@ import { Projectiles } from 'src/app/systems/projectiles';
 import { Reaper } from 'src/app/systems/reaper';
 import { EntityManager } from 'rad-ecs';
 import { CombatHandler } from 'src/app/systems/combat-handler';
+import { TimeFlow } from 'src/app/systems/time-flow';
+import { AIController } from 'src/app/systems/ai-controller';
 
-const clone = require('clone');
+import * as clone from 'clone';
 
 @Component({
   selector: 'app-play',
@@ -25,7 +28,11 @@ export class PlayComponent implements OnInit {
   
   @Input('dimensions') dimensions: Dimensions;
 
-  private playerId: number;
+  public playerId: number;
+  public wallclockId: number;
+
+  private worldDisplayDimensions: Dimensions;
+  private SIDEBAR_WIDTH = 200;
 
   private LEVEL_WIDTH = 44;
   private LEVEL_HEIGHT = 21;
@@ -39,24 +46,36 @@ export class PlayComponent implements OnInit {
   ngOnInit() {
     this.initLevel();
 
+    this.ecs.addSystem( new AIController(this.wallclockId) );
     this.ecs.addSystem( new CombatHandler() );
     this.ecs.addSystem( new Movement() );
     this.ecs.addSystemAndUpdate( new FOVManager() );
+    this.ecs.addSystemAndUpdate( new DijkstraCalculator() );
     this.ecs.addSystem( new Projectiles() );
     this.ecs.addSystem( new Reaper() );
+    this.ecs.addSystem( new TimeFlow() );
 
     this.inputState = new PlayerControl(
       this.playerId, 
       this.ecs, 
       (h: InputHandler) => this.inputState = h
     );
+
+    this.worldDisplayDimensions = new Dimensions(this.dimensions.width - this.SIDEBAR_WIDTH, this.dimensions.height);
   }
 
   worldDisplaySize(): Dimensions {
-    return this.dimensions;
+    return this.worldDisplayDimensions;
   }
 
-  initLevel(): void {
+  sidebarSize(): {} {
+    return {
+      width: `${this.SIDEBAR_WIDTH}px`,
+      height: `${this.dimensions.height}px`
+    }
+  }
+
+  private initLevel(): void {
     let world = new ROT.Map.Uniform(this.LEVEL_WIDTH, this.LEVEL_HEIGHT, {roomDugPercentage: 0.9});
   
     let em = this.ecs.em;
@@ -86,7 +105,9 @@ export class PlayComponent implements OnInit {
       new Renderable("Player0-22.png", 11),
       new Physical(Size.MEDIUM, Dynamism.DYNAMIC),
       new Sight(100),
-      new Combat(8, 5, 4)
+      new Combat(8, 5, 4),
+      new Health(100, 100),
+      new Player()
     ).id();
   
     let remainingRooms = rooms.filter( (r: Room, i: number) => i !== playerRoomNum);
@@ -95,6 +116,10 @@ export class PlayComponent implements OnInit {
 
     this.createEnemy(new Position(enemyRoom.getCenter()[0], enemyRoom.getCenter()[1], 0), em);
     this.createEnemy(new Position(enemyRoom.getCenter()[0]+1, enemyRoom.getCenter()[1], 0), em);
+
+    this.wallclockId = em.createEntity(
+      new Clock('wallclock', 0)
+    ).id();
   }
 
   private createEnemy(pos: Position, em: EntityManager): number {
@@ -103,7 +128,8 @@ export class PlayComponent implements OnInit {
       new Renderable("Undead0-41.png", 10),
       new Health(10, 10),
       new Physical(Size.MEDIUM, Dynamism.DYNAMIC),
-      new Combat(6, 4, 0)
+      new Combat(6, 4, 0),
+      new AI(0, 150)
     ).id();
   }
 

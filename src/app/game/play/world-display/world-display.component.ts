@@ -4,7 +4,7 @@ import { Dimensions, randomInt } from 'src/utils';
 import * as PIXI from 'pixi.js';
 import { EcsService } from 'src/ecs.service';
 import { Entity } from 'rad-ecs';
-import { Renderable, Position, Knowledge, KnownState, Dynamism, Physical, ClearRender } from 'src/app/components.model';
+import { Renderable, Position, Knowledge, KnownState, Dynamism, Physical, ClearRender, DijkstraMap } from 'src/app/components.model';
 
 @Component({
   selector: 'app-world-display',
@@ -16,7 +16,7 @@ export class WorldDisplayComponent implements OnInit, AfterViewInit {
   @Input('dimensions') dimensions: Dimensions;
   @ViewChild('renderElement') renderElement: ElementRef;
 
-  private HACK_REDUCE_HEIGHT = 5; // using exact values causes scrollbars to be displayed which then changes the available space
+  private HACK_REDUCE_HEIGHT = 6; // using exact values causes scrollbars to be displayed which then changes the available space
 
   private DISPLAY_WIDTH_IN_TILES = 44;
   private TILE_SIZE = 16;
@@ -28,6 +28,7 @@ export class WorldDisplayComponent implements OnInit, AfterViewInit {
   private smallTextures: PIXI.ITextureDictionary;
 
   private spriteRegister = new Map<number, PIXI.Sprite>();
+  private dijkstraRegister = new Map<Position, PIXI.Sprite>();
   
   constructor(
     private ecs: EcsService
@@ -124,6 +125,30 @@ export class WorldDisplayComponent implements OnInit, AfterViewInit {
         }
       }
     }
+
+    // radNOTE: uncomment to render out Dijkstra distance map values
+    // this.ecs.em.each( (e: Entity, dm: DijkstraMap) => {
+    //   for (const [c, d] of dm.distanceMap) {
+    //     let oldText = this.dijkstraRegister.get(c);
+    //     if ( oldText ) {
+    //       oldText.destroy();
+    //       this.dijkstraRegister.delete(c);
+    //     }
+    //     let text = new PIXI.Text(
+    //       `${d}`, 
+    //       { fontSize: 72, fill: 'white', fontWeight: 'bold' }
+    //     );
+    //     text.position.set(
+    //       c.x * this.TILE_SIZE + (this.TILE_SIZE * 0.5),
+    //       c.y * this.TILE_SIZE + (this.TILE_SIZE * 0.5)
+    //     );
+    //     text.scale.set(0.15, 0.15);
+    //     text.anchor.set(0.5, 0.5);
+    //     this.dijkstraRegister.set(c, text);
+    //     this.pixiApp.stage.addChild(text);
+    //   }
+    // }, 
+    // DijkstraMap);
 
     this.setPixiScale();
   }

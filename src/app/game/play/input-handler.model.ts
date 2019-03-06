@@ -1,11 +1,11 @@
 import { EntityManager, Entity } from 'rad-ecs';
-import { Position, Physical, PhysicalMove, Renderable, ClearRender, Knowledge, KnownState, Size } from 'src/app/components.model';
+import { Position, Physical, PhysicalMove, Renderable, ClearRender, Knowledge, KnownState, Size, IncrementTime } from 'src/app/components.model';
 import { DIR_VECTORS, DIR_FROM_KEY } from './../../../utils';
 import { EcsService } from 'src/ecs.service';
 
 import * as clone from 'clone';
 import { bresenham, BresPos } from 'src/bresenham';
-const deepEqual = require('deep-equal');
+import * as deepEqual from 'fast-deep-equal';
 
 export interface InputHandler {
   handleKey: (e: KeyboardEvent) => boolean
@@ -21,7 +21,9 @@ export class PlayerControl implements InputHandler {
   handleKey(e: KeyboardEvent): boolean {
     if ( e.key === '5') {
         console.log(`Player resting...`);
+        this.ecs.em.setComponent(this.playerId, new IncrementTime(100));
         this.ecs.update(); // hack for testing
+        this.ecs.update();
         return false;
     }
 
@@ -34,9 +36,9 @@ export class PlayerControl implements InputHandler {
         )
       );
 
-      // this.ecs.em.setComponent(this.playerId, new IncrementTime(100));
+      this.ecs.em.setComponent(this.playerId, new IncrementTime(100));
       this.ecs.update(); // for player
-      // this.ecs.update(); // for AI
+      this.ecs.update(); // for AI
     }
     return false; 
   }
