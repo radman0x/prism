@@ -22,6 +22,7 @@ import { Subject } from 'rxjs';
 import { Spawn } from 'src/app/systems/spawn';
 import { Dismantle } from 'src/app/systems/dismantle';
 import { randomPosInRoom } from 'src/rot-utils';
+import { PixiRendererService } from './pixi-renderer.service';
 
 @Component({
   selector: 'app-play',
@@ -45,7 +46,8 @@ export class PlayComponent implements OnInit, OnChanges {
   private inputState: InputHandler;
 
   constructor(
-    private ecs: EcsService
+    private ecs: EcsService,
+    private renderService: PixiRendererService
   ) { }
 
   ngOnInit() {
@@ -58,7 +60,7 @@ export class PlayComponent implements OnInit, OnChanges {
     this.ecs.addSystem( new Movement() );
     this.ecs.addSystemAndUpdate( new FOVManager() );
     this.ecs.addSystemAndUpdate( new DijkstraCalculator() );
-    this.ecs.addSystem( new Projectiles() );
+    this.ecs.addSystem( new Projectiles(this.renderService) );
     this.ecs.addSystem( new Reaper() );
     this.ecs.addSystem( new TimeFlow() );
     this.ecs.addSystem( new GameEnder(() => this.playFinished.next()) );

@@ -6,11 +6,18 @@ import { bresenhamRange } from 'src/bresenham';
 import { randomInt } from 'src/utils';
 
 import * as deepEqual from 'fast-deep-equal';
+import { rendererTypeName } from '@angular/compiler';
+import { PixiRendererService } from '../game/play/pixi-renderer.service';
 
 export class Projectiles implements System {
-  constructor() {}
+  private pixiRenderService: PixiRendererService;
+  constructor(
+    prs: PixiRendererService
+  ) {
+    this.pixiRenderService = prs;
+  }
 
-  update(em: EntityManager): void {
+  update(em: EntityManager) {
     em.each( (e: Entity, v: Velocity, p: Position) => {
       
       const HACK_RANGE = 20;

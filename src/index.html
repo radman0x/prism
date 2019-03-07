@@ -7,6 +7,23 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script type="text/javascript">
+    var props = ['scroll', 'mouseenter', 'mouseleave', 'mousemove', 'mouseover', 'mouseout', 'mousewheel', 'pointermove'];
+    // black list scroll event handler for onProp
+    const targets = [window, Document.prototype, HTMLBodyElement.prototype, HTMLElement.prototype];
+     window.__Zone_ignore_on_properties = [];
+    targets.forEach(function(target) {
+      window.__Zone_ignore_on_properties.push({
+        target: target,
+        ignoreProperties: props
+      });
+    });
+
+    // disable requestAnimationFrame
+    window.__Zone_disable_requestAnimationFrame = true;
+    window.__Zone_disable_on_property = true; // Zone will not patch onProperty such as button.onclick, not sure if this should be left disabled...
+    window.__zone_symbol__BLACK_LISTED_EVENTS = props;
+  </script>
 </head>
 <body>
   <app-root></app-root>

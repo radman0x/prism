@@ -24,7 +24,7 @@ export class EcsService {
     this.systems.push(s);
   }
 
-  update(): void {
+  update() {
     for (let s of this.systems) {
       s.update(this.em);
     }
