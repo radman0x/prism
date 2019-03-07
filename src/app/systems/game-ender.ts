@@ -22,8 +22,6 @@ export class GameEnder implements System {
         ) {
           console.log(`EndGame condition was triggered!`);
           this.endEvent.next();
-        } else {
-          console.log(`EndGame condition not triggered`);
         }
       }
     });

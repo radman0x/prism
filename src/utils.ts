@@ -108,7 +108,7 @@ export class Coord {
   magnitude(): number {
     return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2) + Math.pow(this.z, 2));
   }
-  
+
   hash(): string {
     return `${this.x},${this.y},${this.z}`
   }
@@ -163,4 +163,15 @@ export function xyWithinBounds(
       });
 
     return inside.length === candidates.length;
+}
+
+export function randomElement<T>(array: T[]): T {
+  return array[randomInt(0, array.length)];
+}
+
+export function popRandomElement<T>(array: T[]): T {
+  const index = randomInt(0, array.length);
+  const chosen = array[index];
+  array.splice(index, 1);
+  return chosen;
 }

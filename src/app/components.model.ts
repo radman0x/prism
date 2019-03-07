@@ -242,3 +242,20 @@ export class EndGame extends Component {
     super();
   }
 }
+
+export class Spawner extends Component {
+  constructor(
+    public readonly spawnComponents: Component[],
+    public readonly spawnRate: number,
+    public readonly lastSpawnTick: number,
+    public readonly spawnChance: number
+  ) {
+    super();
+  }
+}
+
+export class Destructible extends Component {
+  constructor() {
+    super();
+  }
+}

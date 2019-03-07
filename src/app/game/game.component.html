@@ -11,8 +11,10 @@
     [dimensions]="playAreaSize()"
     (playFinished)="endPlay()">
   </app-play>
-  <app-play-report
-    *ngIf="state === GameState.REPORT">
+  <div app-play-report
+       [dimensions]="playAreaSize()"
+       *ngIf="state === GameState.REPORT"
+       class="h-100">
 
-  </app-play-report>
+  </div>
 </div>

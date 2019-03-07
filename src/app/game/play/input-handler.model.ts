@@ -20,7 +20,6 @@ export class PlayerControl implements InputHandler {
 
   handleKey(e: KeyboardEvent): boolean {
     if ( e.key === '5') {
-        console.log(`Player resting...`);
         this.ecs.em.setComponent(this.playerId, new IncrementTime(100));
         this.ecs.update(); // hack for testing
         this.ecs.update();

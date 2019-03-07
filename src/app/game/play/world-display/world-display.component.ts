@@ -19,6 +19,7 @@ export class WorldDisplayComponent implements OnInit, AfterViewInit {
   private HACK_REDUCE_HEIGHT = 6; // using exact values causes scrollbars to be displayed which then changes the available space
 
   private DISPLAY_WIDTH_IN_TILES = 44;
+  private DISPLAY_HEIGHT_IN_TILES = 21;
   private TILE_SIZE = 16;
   private PRISM_SPRITE_SHEET = 'assets/prism.json';
   private SMALLER_SPRITE_SHEET = 'assets/smaller.json';
@@ -182,7 +183,8 @@ export class WorldDisplayComponent implements OnInit, AfterViewInit {
   }
   private setPixiScale(): void {
     const rawTileWidth = this.DISPLAY_WIDTH_IN_TILES * this.TILE_SIZE;
-    const scale = this.dimensions.width / rawTileWidth;
+    const rawTileHeight = this.DISPLAY_HEIGHT_IN_TILES * this.TILE_SIZE;
+    const scale = Math.min(this.dimensions.width / rawTileWidth, this.dimensions.height / rawTileHeight);
     this.pixiApp.stage.scale.set(scale, scale);
   }
 

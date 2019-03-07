@@ -1,9 +1,9 @@
 import { DijkstraCalculator } from './../../systems/dijkstra-calculator';
 import { PlayerControl, InputHandler, ChooseTarget } from './input-handler.model';
-import { Health, Sight, Dynamism, Velocity, Aimed, Combat, Player, Clock, AI, Conditional, Renderable, Position, Size, Physical, Proximity, EndGame, CompositeLink, ParentLink } from './../../components.model';
+import { Health, Sight, Dynamism, Velocity, Aimed, Combat, Player, Clock, AI, Conditional, Renderable, Position, Size, Physical, Proximity, EndGame, CompositeLink, ParentLink, Spawner, IncrementTime, Destructible, DijkstraMap } from './../../components.model';
 import { Movement } from '../../systems/movement.model';
-import { Dimensions, randomInt } from './../../../utils';
-import { Component, OnInit, Input, HostListener, Output } from '@angular/core';
+import { Dimensions, randomInt, popRandomElement, randomElement, ValueMap } from './../../../utils';
+import { Component, OnInit, Input, HostListener, Output, OnChanges } from '@angular/core';
 import { EcsService } from 'src/ecs.service';
 
 import * as ROT from 'rot-js';
@@ -11,7 +11,7 @@ import { Room } from 'rot-js/lib/map/features';
 import { FOVManager } from 'src/app/systems/fov.model';
 import { Projectiles } from 'src/app/systems/projectiles';
 import { Reaper } from 'src/app/systems/reaper';
-import { EntityManager } from 'rad-ecs';
+import { EntityManager, Entity } from 'rad-ecs';
 import { CombatHandler } from 'src/app/systems/combat-handler';
 import { TimeFlow } from 'src/app/systems/time-flow';
 import { AIController } from 'src/app/systems/ai-controller';
@@ -19,13 +19,16 @@ import { AIController } from 'src/app/systems/ai-controller';
 import * as clone from 'clone';
 import { GameEnder } from 'src/app/systems/game-ender';
 import { Subject } from 'rxjs';
+import { Spawn } from 'src/app/systems/spawn';
+import { Dismantle } from 'src/app/systems/dismantle';
+import { randomPosInRoom } from 'src/rot-utils';
 
 @Component({
   selector: 'app-play',
   templateUrl: './play.component.html',
   styleUrls: ['./play.component.css']
 })
-export class PlayComponent implements OnInit {
+export class PlayComponent implements OnInit, OnChanges {
   
   @Input('dimensions') dimensions: Dimensions;
   @Output('playFinished') playFinished = new Subject();
@@ -48,8 +51,10 @@ export class PlayComponent implements OnInit {
   ngOnInit() {
     this.initLevel();
 
+    this.ecs.addSystem( new Spawn(this.wallclockId) );
     this.ecs.addSystem( new AIController(this.wallclockId) );
     this.ecs.addSystem( new CombatHandler() );
+    this.ecs.addSystem( new Dismantle() );
     this.ecs.addSystem( new Movement() );
     this.ecs.addSystemAndUpdate( new FOVManager() );
     this.ecs.addSystemAndUpdate( new DijkstraCalculator() );
@@ -58,12 +63,18 @@ export class PlayComponent implements OnInit {
     this.ecs.addSystem( new TimeFlow() );
     this.ecs.addSystem( new GameEnder(() => this.playFinished.next()) );
 
+    this.placePortal(this.ecs.em.get(this.playerId).component(DijkstraMap).distanceMap, this.ecs.em);
+
     this.inputState = new PlayerControl(
       this.playerId, 
       this.ecs, 
       (h: InputHandler) => this.inputState = h
     );
 
+    this.worldDisplayDimensions = new Dimensions(this.dimensions.width - this.SIDEBAR_WIDTH, this.dimensions.height);
+  }
+
+  ngOnChanges(): void {
     this.worldDisplayDimensions = new Dimensions(this.dimensions.width - this.SIDEBAR_WIDTH, this.dimensions.height);
   }
 
@@ -99,12 +110,27 @@ export class PlayComponent implements OnInit {
     });
   
     let rooms = world.getRooms();
-    let playerRoomNum = randomInt(0, rooms.length -1);
-    console.log(`player room num: ${playerRoomNum}`);
-    let playerRoom = rooms[playerRoomNum];
+    let playerRoom = popRandomElement(rooms);
+    let playerPos = new Position(playerRoom.getCenter()[0], playerRoom.getCenter()[1], 0);
     console.log(`player pos: ${playerRoom.getCenter()}`);
-    this.playerId = em.createEntity(
-      new Position(playerRoom.getCenter()[0], playerRoom.getCenter()[1], 0),
+    this.playerId = this.createPlayer(playerPos, em);
+  
+    this.placeSpawners(rooms, em);
+
+    let enemyRoom = popRandomElement(rooms);
+    console.log(`Enemy pos: ${enemyRoom.getCenter()}`);
+
+    this.createEnemy(new Position(enemyRoom.getCenter()[0], enemyRoom.getCenter()[1], 0), em);
+    this.createEnemy(new Position(enemyRoom.getCenter()[0]+1, enemyRoom.getCenter()[1], 0), em);
+
+    this.wallclockId = em.createEntity(
+      new Clock('wallclock', 0)
+    ).id();
+  }
+
+  private createPlayer(pos: Position, em: EntityManager): number {
+    return em.createEntity(
+      pos,
       new Renderable("Player0-22.png", 11),
       new Physical(Size.MEDIUM, Dynamism.DYNAMIC),
       new Sight(100),
@@ -112,35 +138,7 @@ export class PlayComponent implements OnInit {
       new Health(100, 100),
       new Player()
     ).id();
-  
-    let remainingRooms = rooms.filter( (r: Room, i: number) => i !== playerRoomNum);
-    let enemyRoomNum = randomInt(0, remainingRooms.length -1);
-    let enemyRoom = remainingRooms[enemyRoomNum];
-    console.log(`Enemy pos: ${enemyRoom.getCenter()}`);
-
-    this.createEnemy(new Position(enemyRoom.getCenter()[0], enemyRoom.getCenter()[1], 0), em);
-    this.createEnemy(new Position(enemyRoom.getCenter()[0]+1, enemyRoom.getCenter()[1], 0), em);
-
-    remainingRooms = remainingRooms.filter( (r: Room, i: number) => i !== enemyRoomNum);
-    let portalRoomNum = randomInt(0, remainingRooms.length -1);
-    let portalRoom = remainingRooms[portalRoomNum];
-    let portalId = em.createEntity(
-      new Position(portalRoom.getCenter()[0], portalRoom.getCenter()[1], 0),
-      new Renderable('Door0-41.png', 11),
-      new Physical(Size.LARGE, Dynamism.STATIC)
-    ).id();
-    let portalActionId = em.createEntity(
-      new Conditional(new Proximity(0, this.playerId)),
-      new EndGame()
-    ).id();
-    em.setComponent(portalId, new CompositeLink(portalActionId));
-    em.setComponent(portalActionId, new ParentLink(portalId));
-
-    this.wallclockId = em.createEntity(
-      new Clock('wallclock', 0)
-    ).id();
   }
-
   private createEnemy(pos: Position, em: EntityManager): number {
     return em.createEntity(
       pos,
@@ -152,9 +150,68 @@ export class PlayComponent implements OnInit {
     ).id();
   }
 
+  private createSpawner(pos: Position, em: EntityManager): number {
+    return em.createEntity(
+      pos,
+      new Renderable('Decor0-126.png', 2),
+      new Health(20, 20),
+      new Physical(Size.LARGE, Dynamism.STATIC),
+      new Destructible(),
+      new Spawner([
+        new Renderable("Undead0-41.png", 10),
+        new Health(10, 10),
+        new Physical(Size.MEDIUM, Dynamism.DYNAMIC),
+        new Combat(6, 4, 0),
+        new AI(0, 150)],
+      100,
+      0,
+      7)
+    ).id();
+  }
+
+  private posAvailable = (p: Position, em: EntityManager) => {
+    return em.matchingIndex(p)
+      .filter( (e: Entity) => {
+        return e.component(Position).z === 0 && e.has(Physical) && e.component(Physical).size >= Size.MEDIUM
+      })
+      .length === 0;
+  };
+
+  private placeSpawners(rooms: Room[], em: EntityManager): void {
+    const N_SPAWNERS = rooms.length - 2;
+    for (let i = 0; i < N_SPAWNERS; ++i) {
+      const room = randomElement(rooms);
+      this.createSpawner(randomPosInRoom(room, (p: Position) => this.posAvailable(p, em)), em);
+    }
+  }
+
+  private placePortal(distanceMap: ValueMap<Position, number>, em: EntityManager) {
+    let orderedFurthest: [Position, number][] = [];
+    for (let [p, d] of distanceMap) {
+      orderedFurthest.push( [p, d] );
+    }
+    orderedFurthest.sort( (lhs: [Position, number], rhs: [Position, number]) => rhs[1] - lhs[1] );
+    for (const [p, d] of orderedFurthest) {
+      if (this.posAvailable(p, em)) {
+        let portalId = em.createEntity(
+          p,
+          new Renderable('Door0-41.png', 5),
+          new Physical(Size.LARGE, Dynamism.STATIC)
+        ).id();
+        let portalActionId = em.createEntity(
+          new Conditional(new Proximity(0, this.playerId)),
+          new EndGame()
+        ).id();
+        em.setComponent(portalId, new CompositeLink(portalActionId));
+        em.setComponent(portalActionId, new ParentLink(portalId));
+        return; // only need one
+      }
+    }
+  }
+
   @HostListener('window:keypress', ['$event'])
   handleMoveInput(e: KeyboardEvent) {
-    console.log(`Key input: ${e.key}`);
+    // console.log(`Key input: ${e.key}`);
     const changeState = (h: InputHandler) => {
       this.inputState = h;
     };
@@ -179,7 +236,10 @@ export class PlayComponent implements OnInit {
             o,  
             new Physical(Size.SMALL, Dynamism.STATIC)
           );
+          this.ecs.em.setComponent(this.playerId, new IncrementTime(100));
           this.ecs.update();
+          this.ecs.update();
+
         },
         this.ecs, 
         changeState

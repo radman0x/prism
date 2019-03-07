@@ -19,23 +19,23 @@ export class CombatHandler implements System {
         let hitChance = this.BASE_HIT_CHANCE + attackModifier;
         let hitRoll = Math.random();
         
-        console.log(`hit chance: ${hitChance.toFixed(2)}, roll: ${hitRoll.toFixed(2)}`);
+        // console.log(`hit chance: ${hitChance.toFixed(2)}, roll: ${hitRoll.toFixed(2)}`);
         if (hitRoll <= hitChance) {
-          console.log(`attack hit!`);
+          // console.log(`attack hit!`);
           let hitPower = (hitChance - hitRoll) * 100;
-          console.log(`strike power: ${hitPower} vs armor: ${defender.armor}`);
+          // console.log(`strike power: ${hitPower} vs armor: ${defender.armor}`);
           if (hitPower > defender.armor) {
-            console.log(`attack beat targets armor!`);
+            // console.log(`attack beat targets armor!`);
             let overDamage = (hitPower - defender.armor) * this.OVER_DAMAGE_FACTOR;
-            console.log(`defender suffers ${overDamage.toFixed(0)} points of OVER damage`);
+            // console.log(`defender suffers ${overDamage.toFixed(0)} points of OVER damage`);
             let finalDamage = Math.round(attacker.damage + overDamage);
-            console.log(`defender suffers ${finalDamage.toFixed(0)} points of total damage!`);
+            // console.log(`defender suffers ${finalDamage.toFixed(0)} points of total damage!`);
             let defenderHealth = combatTarget.component(Health);
-            console.log(`health of defender is now: ${defenderHealth.current - finalDamage}`);
+            // console.log(`health of defender is now: ${defenderHealth.current - finalDamage}`);
             em.setComponent(combatTarget.id(), new Health(defenderHealth.current - finalDamage, defenderHealth.max));
           }
         } else {
-          console.log(`attack missed!!`);
+          // console.log(`attack missed!!`);
         }
 
         // remove the move command as it turned into an attack instead!

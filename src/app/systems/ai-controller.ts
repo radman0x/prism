@@ -27,13 +27,14 @@ export class AIController implements System {
       if ( actionPoints >= ai.actionCost) {
         const aiPos = aiEntity.component(Position);
         const closest = this.selectMoveTarget(aiPos, aiPositions, distanceMap, em);
-        // console.log(`pushing ai move order to: ${closest.pos}`);
-        if ( ! (closest.distance === 0)) { // attacking the player
+        if ( closest === null ) {
+          // console.log(`AI ${aiEntity.id()} can't move!`);
+        } else if (closest.distance !== 0) {
           const moveTarget = closest.pos;
           aiPositions.delete(p);
           aiPositions.set(moveTarget, aiEntity.id());
+          em.setComponent(aiEntity.id(), new PhysicalMove(closest.pos));
         } 
-        em.setComponent(aiEntity.id(), new PhysicalMove(closest.pos));
         em.setComponent(aiEntity.id(), new AI(ai.lastActionTick + ai.actionCost, ai.actionCost));
       }
     }, AI, Position);

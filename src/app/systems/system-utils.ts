@@ -5,8 +5,6 @@ export class ConditionHandler {
 
   static handleCondition(c: Condition, owner: Entity, em: EntityManager): boolean {
     if (c instanceof Proximity) {
-      console.log(`Proximity condition detected`);
-      console.log(c);
       try {
         if ( c.specificEntity ) {
           let anchorPos: Position;
@@ -18,9 +16,9 @@ export class ConditionHandler {
           }
           
           let specificPos = em.get(c.specificEntity).component(Position);
-          console.log(`anchor: ${anchorPos.hash()}, specific: ${specificPos.hash()}`);
+          // console.log(`anchor: ${anchorPos.hash()}, specific: ${specificPos.hash()}`);
           let distanceToSpecific = anchorPos.subtract(specificPos).magnitude();
-          console.log(`Specific entity is ${distanceToSpecific} away`);
+          // console.log(`Specific entity is ${distanceToSpecific} away`);
           if ( distanceToSpecific <= c.range ) {
             return true;
           }
