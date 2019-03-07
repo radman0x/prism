@@ -57,6 +57,10 @@ export class Position extends Component {
   static fromCoord(c: Coord): Position {
     return new Position(c.x, c.y, c.z);
   }
+
+  magnitude(): number {
+    return this.coord.magnitude();
+  }
 }
 
 export enum Size {
@@ -190,6 +194,51 @@ export class AI extends Component {
     public readonly lastActionTick: number,
     public readonly actionCost: number
   ) {
+    super();
+  }
+}
+
+export class ParentLink extends Component {
+  constructor(
+    public readonly parentId: number
+  ) {
+    super();
+  }
+}
+
+export class CompositeLink extends Component {
+  public readonly childIds: number[]
+  constructor(
+    ...childIds_: number[]
+  ) {
+    super();
+    this.childIds = childIds_;
+  }
+}
+
+export class Conditional extends Component {
+  constructor(
+    public readonly condition: Condition
+  ) {
+    super();
+  }
+}
+
+export class Condition {
+
+}
+
+export class Proximity extends Condition {
+  constructor(
+    public readonly range: number,
+    public readonly specificEntity?: number
+  ) {
+    super();
+  }
+}
+
+export class EndGame extends Component {
+  constructor() {
     super();
   }
 }

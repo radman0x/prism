@@ -1,6 +1,12 @@
 import { Dimensions } from './../../utils';
 import { Component, OnInit, Input, ElementRef, AfterViewInit, ViewChild } from '@angular/core';
 
+enum GameState {
+  TITLE,
+  PLAY,
+  REPORT
+}
+
 @Component({
   selector: 'app-game',
   templateUrl: './game.component.html',
@@ -9,6 +15,9 @@ import { Component, OnInit, Input, ElementRef, AfterViewInit, ViewChild } from '
 export class GameComponent implements OnInit, AfterViewInit {
   @ViewChild('fullScreen') fullScreen: ElementRef;
   @ViewChild('navbar')     navbar: ElementRef;
+
+  public GameState = GameState;
+  public state = GameState.PLAY;
 
   constructor() { }
 
@@ -27,5 +36,9 @@ export class GameComponent implements OnInit, AfterViewInit {
       width: fullSize.width,
       height: fullSize.height - navSize.height
     }
+  }
+
+  endPlay(): void {
+    this.state = GameState.REPORT;
   }
 }

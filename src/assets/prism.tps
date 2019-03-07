@@ -184,6 +184,7 @@
             <key type="filename">dawnlike/Characters/Player0/Player0-22.png</key>
             <key type="filename">dawnlike/Characters/Undead0/Undead0-41.png</key>
             <key type="filename">dawnlike/Items/Money/Money-29.png</key>
+            <key type="filename">dawnlike/Objects/Door0/Door0-41.png</key>
             <key type="filename">dawnlike/Objects/Floor/Floor-48.png</key>
             <key type="filename">dawnlike/Objects/Wall/Wall-188.png</key>
             <key type="filename">dawnlike/radman_additions/misc/0004_blank.png</key>
@@ -216,6 +217,7 @@
             <filename>dawnlike/radman_additions/misc/0007_spot_highlight.png</filename>
             <filename>dawnlike/radman_additions/misc/0008_spot_invalid.png</filename>
             <filename>dawnlike/Items/Money/Money-29.png</filename>
+            <filename>dawnlike/Objects/Door0/Door0-41.png</filename>
         </array>
         <key>ignoreFileList</key>
         <array/>

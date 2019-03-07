@@ -6,5 +6,13 @@
       <li class="nav-item"><a href="#" class="nav-link">About</a></li>
     </ul>
   </nav>
-  <app-play [dimensions]="playAreaSize()"></app-play>
+  <app-play 
+    *ngIf="state === GameState.PLAY"
+    [dimensions]="playAreaSize()"
+    (playFinished)="endPlay()">
+  </app-play>
+  <app-play-report
+    *ngIf="state === GameState.REPORT">
+
+  </app-play-report>
 </div>

@@ -7,6 +7,8 @@ import { GameComponent } from './game/game.component';
 import { PlayComponent } from './game/play/play.component';
 import { WorldDisplayComponent } from './game/play/world-display/world-display.component';
 import { SidebarComponent } from './game/play/sidebar/sidebar.component';
+import { PlayReportComponent } from './game/play-report/play-report.component';
+import { TitleScreenComponent } from './game/title-screen/title-screen.component';
 
 @NgModule({
   declarations: [
@@ -14,7 +16,9 @@ import { SidebarComponent } from './game/play/sidebar/sidebar.component';
     GameComponent,
     PlayComponent,
     WorldDisplayComponent,
-    SidebarComponent
+    SidebarComponent,
+    PlayReportComponent,
+    TitleScreenComponent
   ],
   imports: [
     BrowserModule,
