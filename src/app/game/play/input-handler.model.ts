@@ -19,7 +19,7 @@ export class PlayerControl implements InputHandler {
   ) {}
 
   handleKey(key: string): boolean {
-    if ( key === '5') {
+    if ( key === '5' || key === '.') {
         this.ecs.em.setComponent(this.playerId, new IncrementTime(100));
         this.ecs.update(); // hack for testing
         this.ecs.update();
