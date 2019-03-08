@@ -32,7 +32,6 @@ export class WorldDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
   }
 
   ngOnChanges() {
-    console.log(`on changes`);
     if (this.pixiService.running()) {
       this.pixiService.resize(this.dimensions.width, this.dimensions.height - this.HACK_REDUCE_HEIGHT);
     }

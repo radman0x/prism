@@ -211,9 +211,7 @@ export class PlayComponent implements OnInit, OnChanges {
     }
   }
 
-  @HostListener('window:keypress', ['$event'])
-  handleMoveInput(e: KeyboardEvent) {
-    // console.log(`Key input: ${e.key}`);
+  private handleKey(key: string): void {
     const changeState = (h: InputHandler) => {
       this.inputState = h;
     };
@@ -224,9 +222,9 @@ export class PlayComponent implements OnInit, OnChanges {
     }
     let consumePress = false;
     if (this.inputState) {
-      consumePress = this.inputState.handleKey(e);
+      consumePress = this.inputState.handleKey(key);
     }
-    if ( ! consumePress && e.key === '/') {
+    if ( ! consumePress && key === '/') {
       const player = this.ecs.em.get(this.playerId);
       this.inputState = new ChooseTarget(
         player.component(Position), 
@@ -250,10 +248,33 @@ export class PlayComponent implements OnInit, OnChanges {
     }
   }
 
+  @HostListener('window:keypress', ['$event'])
+  handleMoveInput(e: KeyboardEvent) {
+    console.log(`Key input: ${e.key}`);
+    if (this.inputState ) {
+      this.handleKey(e.key);
+    }
+  }
+
   @HostListener('window:keyup.escape', ['$event'])
   handleEsc(e: KeyboardEvent) {
     if ( this.inputState ) {
-      this.inputState.handleKey(e);
+      this.handleKey('Escape');
+    }
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleArrows(e: KeyboardEvent) {
+    const ARROWS = [
+      'ArrowLeft',
+      'ArrowRight',
+      'ArrowUp',
+      'ArrowDown'
+    ];
+    const arrowKey = ARROWS.find( (s: string) => s === e.key);
+    if (arrowKey && this.inputState) {
+      console.log(`pushing arrow key: ${arrowKey}`);
+      this.inputState.handleKey(arrowKey);
     }
   }
 }

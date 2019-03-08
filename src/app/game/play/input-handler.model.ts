@@ -8,7 +8,7 @@ import { bresenham, BresPos } from 'src/bresenham';
 import * as deepEqual from 'fast-deep-equal';
 
 export interface InputHandler {
-  handleKey: (e: KeyboardEvent) => boolean
+  handleKey: (key: string) => boolean
 }
 
 export class PlayerControl implements InputHandler {
@@ -18,16 +18,16 @@ export class PlayerControl implements InputHandler {
     private changeState: (s: InputHandler) => void
   ) {}
 
-  handleKey(e: KeyboardEvent): boolean {
-    if ( e.key === '5') {
+  handleKey(key: string): boolean {
+    if ( key === '5') {
         this.ecs.em.setComponent(this.playerId, new IncrementTime(100));
         this.ecs.update(); // hack for testing
         this.ecs.update();
         return false;
     }
 
-    if ( DIR_FROM_KEY.has(e.key) ) {
-      let moveDir = DIR_VECTORS.get(DIR_FROM_KEY.get(e.key));
+    if ( DIR_FROM_KEY.has(key) ) {
+      let moveDir = DIR_VECTORS.get(DIR_FROM_KEY.get(key));
       let playerPos = this.ecs.em.get(this.playerId).component(Position);
       this.ecs.em.setComponent(this.playerId, 
         new PhysicalMove(
@@ -60,17 +60,17 @@ export class ChooseTarget implements InputHandler {
 
   }
 
-  handleKey(e: KeyboardEvent): boolean {
-    if (e.key === '/') {
+  handleKey(key: string): boolean {
+    if (key === '/') {
       console.log(`should consume`);
       return true; // ignore 
     }
-    if (e.key === 'Escape' || e.key === 'Delete') {
+    if (key === 'Escape' || key === 'Delete') {
       this.cleanup();
       this.leave();
       return false;
     }
-    if (e.key === 'Enter') {
+    if (key === 'Enter') {
       this.cleanup();
       if ( ! deepEqual(this.currentTarget, this.startPoint) && this.posTargetable(this.currentTarget)) {
         const playerPos = this.ecs.em.get(this.playerId).component(Position);
@@ -83,8 +83,8 @@ export class ChooseTarget implements InputHandler {
       this.leave();
       return false;
     }
-    if ( DIR_FROM_KEY.has(e.key) ) {
-      let moveDir = DIR_VECTORS.get(DIR_FROM_KEY.get(e.key));
+    if ( DIR_FROM_KEY.has(key) ) {
+      let moveDir = DIR_VECTORS.get(DIR_FROM_KEY.get(key));
       this.currentTarget = this.currentTarget.add(new Position(moveDir[0], moveDir[1], 0));
       this.updateDisplay();
     }

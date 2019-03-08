@@ -45,13 +45,32 @@ export const DIR_VECTORS = new Map<MoveDirection, [number, number]>([
 
 export const DIR_FROM_KEY = new Map<string, MoveDirection>([
   ['1', MoveDirection.SOUTH_WEST],
+  ['b', MoveDirection.SOUTH_WEST],
+
+  ['ArrowDown', MoveDirection.SOUTH],
   ['2', MoveDirection.SOUTH],
+  ['j', MoveDirection.SOUTH],
+
   ['3', MoveDirection.SOUTH_EAST],
+  ['n', MoveDirection.SOUTH_EAST],
+
+  ['ArrowLeft', MoveDirection.WEST],
   ['4', MoveDirection.WEST],
+  ['h', MoveDirection.WEST],
+
+  ['ArrowRight', MoveDirection.EAST],
   ['6', MoveDirection.EAST],
+  ['l', MoveDirection.EAST],
+
   ['7', MoveDirection.NORTH_WEST],
+  ['y', MoveDirection.NORTH_WEST],
+
+  ['ArrowUp', MoveDirection.NORTH],
   ['8', MoveDirection.NORTH],
+  ['k', MoveDirection.NORTH],
+
   ['9', MoveDirection.NORTH_EAST],
+  ['u', MoveDirection.NORTH_EAST],
 ]);
 
 export interface Hashable {
