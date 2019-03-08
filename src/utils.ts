@@ -104,6 +104,10 @@ export class ValueMap<K extends Hashable, V> {
     let entry = this.index.get(key.hash());
     return entry ? entry.v : undefined;
   }
+
+  get size(): number {
+    return this.index.size;
+  }
 }
 
 export class Coord {

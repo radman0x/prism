@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { EcsService } from 'src/ecs.service';
 import { Entity } from 'rad-ecs';
-import { ClearRender, Renderable, Position, Knowledge, Physical, KnownState, Dynamism } from 'src/app/components.model';
+import { ClearRender, Renderable, Position, Knowledge, Physical, KnownState, Dynamism, LightLevel } from 'src/app/components.model';
 import { randomInt, Dimensions } from 'src/utils';
 
 import * as PIXI from 'pixi.js';
+import * as ROT from 'rot-js';
 
 @Injectable({
   providedIn: 'root'
@@ -22,9 +23,10 @@ export class PixiRendererService {
   private smallTextures: PIXI.ITextureDictionary;
 
   private spriteRegister = new Map<number, PIXI.Sprite>();
+  // private dijkstraRegister = new Map<Position, PIXI.Sprite>();
+  private lightRegister = new Map<number, PIXI.Sprite>();
 
   private targetRenderSize: Dimensions;
-  // private dijkstraRegister = new Map<Position, PIXI.Sprite>();
 
   constructor(
     private ecs: EcsService
@@ -120,19 +122,35 @@ export class PixiRendererService {
       this.pixiApp.stage.addChild(sprite);
 
       if (positionKnowledge && y) {
-        const posKnown = positionKnowledge.get(new Position(p.x, p.y, 0));
-        if (posKnown === undefined) {
+        const modRgbString = (rgb: string) => '0x' + rgb.slice(1);
+        const convertRgb = (rgb: [number, number, number]) => modRgbString(ROT.Color.toHex(rgb));
+        const colorAdder = (cs: string, rgbVals: [number, number, number]): string => {
+          const combined = ROT.Color.add(rgbVals, ROT.Color.fromString(cs) as [number, number, number]);
+          let raw = ROT.Color.toHex(combined);
+          const modified = modRgbString(raw);
+          // console.log(`color adder returning: ${modified}`);
+          return modified;
+        };
+        const currPos = new Position(p.x, p.y, 0);
+        const posKnown = positionKnowledge.get(currPos);
+        const lightLevel = this.ecs.em.matchingIndex(currPos)
+          .filter( (e: Entity) => e.has(LightLevel))
+          .reduce( (accum, curr) => curr, null);
+        
+        if (posKnown === undefined ) {
           sprite.visible = false;
         } else {
           switch (posKnown) {
             case KnownState.CURRENT:
               sprite.visible = true;
-              sprite.tint = +'0xFFFFFF';
+              const lightRgb = lightLevel ? +convertRgb(lightLevel.component(LightLevel).level) : +'0x000000';
+              sprite.tint = lightRgb;
               break;
             case KnownState.REMEMBERED:
               if (y.dynamism === Dynamism.STATIC) {
                 sprite.visible = true;
-                sprite.tint = +'0xCCCCCC';
+                const lightRgb = lightLevel ? +convertRgb(lightLevel.component(LightLevel).level) : +'0x000000';
+                sprite.tint = lightRgb;
               } else {
                 sprite.visible = false;
               }

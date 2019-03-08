@@ -1,6 +1,6 @@
 import { DijkstraCalculator } from './../../systems/dijkstra-calculator';
 import { PlayerControl, InputHandler, ChooseTarget } from './input-handler.model';
-import { Health, Sight, Dynamism, Velocity, Aimed, Combat, Player, Clock, AI, Conditional, Renderable, Position, Size, Physical, Proximity, EndGame, CompositeLink, ParentLink, Spawner, IncrementTime, Destructible, DijkstraMap } from './../../components.model';
+import { Health, Sight, Dynamism, Velocity, Aimed, Combat, Player, Clock, AI, Conditional, Renderable, Position, Size, Physical, Proximity, EndGame, CompositeLink, ParentLink, Spawner, IncrementTime, Destructible, DijkstraMap, LightSource, LightStrength } from './../../components.model';
 import { Movement } from '../../systems/movement.model';
 import { Dimensions, randomInt, popRandomElement, randomElement, ValueMap } from './../../../utils';
 import { Component, OnInit, Input, HostListener, Output, OnChanges } from '@angular/core';
@@ -23,6 +23,7 @@ import { Spawn } from 'src/app/systems/spawn';
 import { Dismantle } from 'src/app/systems/dismantle';
 import { randomPosInRoom } from 'src/rot-utils';
 import { PixiRendererService } from './pixi-renderer.service';
+import { Lighting } from 'src/app/systems/lighting';
 
 @Component({
   selector: 'app-play',
@@ -53,6 +54,7 @@ export class PlayComponent implements OnInit, OnChanges {
   ngOnInit() {
     this.initLevel();
 
+    this.ecs.addSystemAndUpdate( new Lighting() );
     this.ecs.addSystem( new Spawn(this.wallclockId) );
     this.ecs.addSystem( new AIController(this.wallclockId) );
     this.ecs.addSystem( new CombatHandler() );
@@ -116,6 +118,23 @@ export class PlayComponent implements OnInit, OnChanges {
     let playerPos = new Position(playerRoom.getCenter()[0], playerRoom.getCenter()[1], 0);
     console.log(`player pos: ${playerRoom.getCenter()}`);
     this.playerId = this.createPlayer(playerPos, em);
+
+    em.createEntity(
+      new Position(playerPos.x - 1, playerPos.y, 0),
+      new Renderable('Decor0-65.png', 5),
+      new LightSource(LightStrength.HIGH),
+      new Physical(Size.SMALL, Dynamism.STATIC)
+    );
+
+    for (let room of rooms) {
+      em.createEntity(
+        new Position(room.getCenter()[0], room.getCenter()[1], 0),
+        new Renderable('Decor0-65.png', 5),
+        new LightSource(LightStrength.HIGH),
+        new Physical(Size.SMALL, Dynamism.STATIC)
+      );
+    }
+
   
     this.placeSpawners(rooms, em);
 
@@ -138,7 +157,8 @@ export class PlayComponent implements OnInit, OnChanges {
       new Sight(100),
       new Combat(8, 5, 4),
       new Health(100, 100),
-      new Player()
+      new Player(),
+      new LightSource(LightStrength.HIGH)
     ).id();
   }
   private createEnemy(pos: Position, em: EntityManager): number {

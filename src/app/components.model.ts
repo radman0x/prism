@@ -259,3 +259,32 @@ export class Destructible extends Component {
     super();
   }
 }
+
+export enum Lit {
+  DARKNESS,
+  VERY_DIM,
+  DIM,
+  MELLOW,
+  LIGHT,
+  VERY_LIGHT
+}
+
+export enum LightStrength {
+  LOW = 2.5,
+  HIGH = 5
+}
+
+export class LightSource extends Component {
+  constructor(
+    public readonly strength: LightStrength
+  ) {
+    super();
+  }
+}
+export class LightLevel extends Component {
+  constructor(
+    public readonly level: [number, number, number]
+  ) {
+    super();
+  }
+}

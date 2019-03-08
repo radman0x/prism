@@ -1,7 +1,7 @@
 
 import { ValueMap } from '../../utils';
 
-import { Position, Physical, Size, Knowledge, KnownState, Sight } from '../components.model';
+import { Position, Physical, Size, Knowledge, KnownState, Sight, LightLevel } from '../components.model';
 import { System, EntityManager, Entity } from 'rad-ecs';
 
 import * as ROT from 'rot-js';
@@ -38,7 +38,12 @@ export class FOVManager implements System {
         s.range, 
         (x: number, y: number, r: number, v: number) => {
           const pos = new Position(x, y, 0);
-          knowledge.set(pos, KnownState.CURRENT);
+          const hasLight = em.matchingIndex(pos)
+            .filter( (e: Entity) => e.has(LightLevel) )
+            .length !== 0;
+          if (hasLight) {
+            knowledge.set(pos, KnownState.CURRENT);
+          }
         }
       );
     

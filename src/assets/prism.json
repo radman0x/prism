@@ -40,7 +40,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
 	"sourceSize": {"w":16,"h":16}
 },
-"Decor0-126.png":
+"Decor0-65.png":
 {
 	"frame": {"x":80,"y":0,"w":16,"h":16},
 	"rotated": false,
@@ -48,7 +48,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
 	"sourceSize": {"w":16,"h":16}
 },
-"Decor0-128.png":
+"Decor0-126.png":
 {
 	"frame": {"x":96,"y":0,"w":16,"h":16},
 	"rotated": false,
@@ -56,7 +56,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
 	"sourceSize": {"w":16,"h":16}
 },
-"Decor0-133.png":
+"Decor0-128.png":
 {
 	"frame": {"x":112,"y":0,"w":16,"h":16},
 	"rotated": false,
@@ -64,7 +64,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
 	"sourceSize": {"w":16,"h":16}
 },
-"Door0-41.png":
+"Decor0-133.png":
 {
 	"frame": {"x":128,"y":0,"w":16,"h":16},
 	"rotated": false,
@@ -72,7 +72,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
 	"sourceSize": {"w":16,"h":16}
 },
-"Floor-48.png":
+"Door0-41.png":
 {
 	"frame": {"x":144,"y":0,"w":16,"h":16},
 	"rotated": false,
@@ -80,7 +80,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
 	"sourceSize": {"w":16,"h":16}
 },
-"Money-29.png":
+"Floor-48.png":
 {
 	"frame": {"x":160,"y":0,"w":16,"h":16},
 	"rotated": false,
@@ -88,7 +88,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
 	"sourceSize": {"w":16,"h":16}
 },
-"Player0-22.png":
+"Money-29.png":
 {
 	"frame": {"x":176,"y":0,"w":16,"h":16},
 	"rotated": false,
@@ -96,7 +96,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
 	"sourceSize": {"w":16,"h":16}
 },
-"Undead0-41.png":
+"Player0-22.png":
 {
 	"frame": {"x":192,"y":0,"w":16,"h":16},
 	"rotated": false,
@@ -104,24 +104,32 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
 	"sourceSize": {"w":16,"h":16}
 },
-"Wall-188.png":
+"Undead0-41.png":
 {
 	"frame": {"x":208,"y":0,"w":16,"h":16},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
 	"sourceSize": {"w":16,"h":16}
+},
+"Wall-188.png":
+{
+	"frame": {"x":224,"y":0,"w":16,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
+	"sourceSize": {"w":16,"h":16}
 }},
 "animations": {
-	"Decor0": ["Decor0-126.png","Decor0-128.png","Decor0-133.png"]
+	"Decor0": ["Decor0-65.png","Decor0-126.png","Decor0-128.png","Decor0-133.png"]
 },
 "meta": {
 	"app": "https://www.codeandweb.com/texturepacker",
 	"version": "1.0",
 	"image": "prism.png",
 	"format": "RGBA8888",
-	"size": {"w":224,"h":16},
+	"size": {"w":240,"h":16},
 	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:6587ae57b407143e26b7cf3917975dbd:e5a132ff324e32a2b761071446489158:15966a948c055fc75a71a0b6be94c67b$"
+	"smartupdate": "$TexturePacker:SmartUpdate:9e2219c1c73a7d7a7c77648720e87452:125e80b9ee74c61149572df363e86d7a:15966a948c055fc75a71a0b6be94c67b$"
 }
 }

@@ -10,12 +10,10 @@ export function randomPosInRoom(
   posFilter: (p: Position) => boolean
   ): Position {
   let roomCells: Position[] = [];
-  console.log(`left: ${room.getLeft()}, right: ${room.getRight()}, top: ${room.getTop()}, bottom: ${room.getBottom()}`);
   for (let x = room.getLeft(); x <= room.getRight(); ++x) {
     for (let y = room.getTop(); y <= room.getBottom(); ++y) {
       const roomPos = new Position(x, y, 0);
       if (posFilter(roomPos)) {
-        console.log(`adding pos: ${roomPos.hash()}`);
         roomCells.push(roomPos);
       }
     }
