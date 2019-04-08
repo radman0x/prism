@@ -144,6 +144,14 @@ export class Coord {
     return new Coord(this.x + rhs.x, this.y + rhs.y, this.z + rhs.z);
   }
 
+  multiply(scale: number): Coord {
+    return new Coord(
+      this.x * scale, 
+      this.y * scale,
+      this.z * scale
+    );
+  }
+
   static fromString(input: string): Coord | never {
     const re = /^{(\d+(.\d+)?), (\d+(.\d+)?), (\d+(.\d+)?)}$/;
     const result = re.exec(input);

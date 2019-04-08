@@ -9,7 +9,7 @@ export class Lighting implements System {
   constructor() {}
 
   update(em: EntityManager): void {
-    console.log(`lighting update`);
+    
     let openMap = new ValueMap<Position, boolean>();
     em.each((e: Entity, p: Position, y: Physical) => {
       const normalPos = new Position(p.x, p.y, 0);

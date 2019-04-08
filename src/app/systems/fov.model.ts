@@ -17,7 +17,7 @@ export class FOVManager implements System {
         let blocking = em.matchingIndex(new Position(x, y, 0)).filter( (e: Entity) => {
           if (e.has(Position) && e.has(Physical)) {
             let [position, physical] = e.components(Position, Physical);
-            return physical && position && physical.size === Size.FILL && position.z === 0;
+            return physical.size === Size.FILL && position.z === 0;
           }
         });
         return blocking.length === 0;
@@ -37,15 +37,21 @@ export class FOVManager implements System {
         viewPos.y, 
         s.range, 
         (x: number, y: number, r: number, v: number) => {
+
           const pos = new Position(x, y, 0);
           const hasLight = em.matchingIndex(pos)
             .filter( (e: Entity) => e.has(LightLevel) )
             .length !== 0;
           if (hasLight) {
             knowledge.set(pos, KnownState.CURRENT);
+            // if (x === viewPos.x && y === viewPos.y) {
+            //   console.log(`view origin set: ${viewPos.hash()}`);
+            // }
           }
         }
       );
+
+      
     
       em.setComponent(e.id(), new Knowledge(knowledge));
     }, Sight);

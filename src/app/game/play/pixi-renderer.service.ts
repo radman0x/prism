@@ -7,6 +7,25 @@ import { randomInt, Dimensions } from 'src/utils';
 import * as PIXI from 'pixi.js';
 import * as ROT from 'rot-js';
 
+export class MoveAnim {
+  constructor(
+    public start: Position,
+    public end: Position,
+    public durationMs: number,
+    public image: string,
+    public renderableId: number | undefined = undefined
+  ) {}
+}
+
+class MoveProgress {
+  constructor(
+    public sprite: PIXI.Sprite,
+    public currentTime: number, 
+    public startPos: Position,
+    public hideId: number
+  ) {}
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -27,6 +46,10 @@ export class PixiRendererService {
   private lightRegister = new Map<number, PIXI.Sprite>();
 
   private targetRenderSize: Dimensions;
+
+  private animations: {id: number, anim: MoveAnim}[] = [];
+  private runningAnims = new Map<number, MoveProgress>();
+  private animCounter: number = 0;
 
   constructor(
     private ecs: EcsService
@@ -53,14 +76,13 @@ export class PixiRendererService {
     this.setPixiScale(width, height);
   }
 
-  running(): boolean {
-    return this.pixiApp !== null;
+  pushMoveAnimation(anim: MoveAnim): void {
+    console.log(`Move animation being pushed`);
+    this.animations.push( {id: this.animCounter++, anim: anim} );
   }
 
-  private checkRunning() {
-    if ( this.pixiApp === null) {
-      throw Error(`PIXI app isn't initialised!!`);
-    }
+  running(): boolean {
+    return this.pixiApp !== null;
   }
 
   reset(): void {
@@ -89,6 +111,8 @@ export class PixiRendererService {
   }
 
   private renderLoop(): void {
+    const dt = this.pixiApp.ticker.deltaMS;
+
     this.pixiApp.stage.destroy();
     this.pixiApp.stage = new PIXI.Container();
 
@@ -128,7 +152,6 @@ export class PixiRendererService {
           const combined = ROT.Color.add(rgbVals, ROT.Color.fromString(cs) as [number, number, number]);
           let raw = ROT.Color.toHex(combined);
           const modified = modRgbString(raw);
-          // console.log(`color adder returning: ${modified}`);
           return modified;
         };
         const currPos = new Position(p.x, p.y, 0);
@@ -137,7 +160,7 @@ export class PixiRendererService {
           .filter( (e: Entity) => e.has(LightLevel))
           .reduce( (accum, curr) => curr, null);
         
-        if (posKnown === undefined ) {
+        if (posKnown === undefined || this.runningAnims.has(e.id())) {
           sprite.visible = false;
         } else {
           switch (posKnown) {
@@ -158,7 +181,58 @@ export class PixiRendererService {
           }
         }
       }
+    } // display of Renderables
+
+    // handle animations
+    for (let [index, animation] of this.animations.entries()) {
+      let progress = this.runningAnims.get(animation.anim.renderableId);
+      if ( ! progress ) {
+        console.log(`creating new sprite for animation`);
+        const sprite = new PIXI.Sprite(this.textures[animation.anim.image]);
+        progress = new MoveProgress(
+          sprite,
+          0,
+          animation.anim.start,
+          animation.anim.renderableId
+        );
+        console.log(`adding anim to running`);
+        this.runningAnims.set(animation.anim.renderableId, progress);
+      }
+
+      if ( index === 0 ) {
+        progress.currentTime += dt;
+        
+        if ( progress.currentTime < animation.anim.durationMs ) {
+  
+          if (progress.hideId !== undefined) {
+            let hideImage = this.spriteRegister.get(progress.hideId);
+            if ( hideImage ) {
+              hideImage.visible = false;
+            }
+          }
+  
+          const vecToTarget = animation.anim.start.subtract(animation.anim.end);
+          const elapsedSecs = progress.currentTime;
+          const progressRatio = elapsedSecs / animation.anim.durationMs;
+          const {x, y} = vecToTarget.multiply(progressRatio * this.TILE_SIZE).add(animation.anim.start.multiply(this.TILE_SIZE));
+  
+          progress.sprite.position.set(x, y);
+          this.pixiApp.stage.addChild(progress.sprite);
+  
+        } else {
+          console.log(`REMOVING animation sprite`);
+          progress.sprite.destroy();
+          this.runningAnims.delete(animation.anim.renderableId);
+          this.animations.splice(0, 1);
+        }
+
+      } else {
+        const startPos = animation.anim.start.multiply(this.TILE_SIZE);
+        progress.sprite.position.set(startPos.x, startPos.y);
+        this.pixiApp.stage.addChild(progress.sprite);
+      }
     }
+
     this.setPixiScale(this.targetRenderSize.width, this.targetRenderSize.height);
 
     // radNOTE: uncomment to render out Dijkstra distance map values
@@ -184,6 +258,12 @@ export class PixiRendererService {
     //   }
     // },
     // DijkstraMap);
+  }
+
+  private checkRunning() {
+    if ( this.pixiApp === null) {
+      throw Error(`PIXI app isn't initialised!!`);
+    }
   }
 
   private adjustSprite(s: PIXI.Sprite, id: number, r: Renderable, p: Position): void {

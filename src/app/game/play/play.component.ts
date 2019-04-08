@@ -1,8 +1,9 @@
+import { AnimationScheduler } from './../../systems/animation-scheduler';
 import { DijkstraCalculator } from './../../systems/dijkstra-calculator';
 import { PlayerControl, InputHandler, ChooseTarget } from './input-handler.model';
 import { Health, Sight, Dynamism, Velocity, Aimed, Combat, Player, Clock, AI, Conditional, Renderable, Position, Size, Physical, Proximity, EndGame, CompositeLink, ParentLink, Spawner, IncrementTime, Destructible, DijkstraMap, LightSource, LightStrength } from './../../components.model';
-import { Movement } from '../../systems/movement.model';
-import { Dimensions, randomInt, popRandomElement, randomElement, ValueMap } from './../../../utils';
+import { Movement } from '../../systems/movement';
+import { Dimensions, popRandomElement, randomElement, ValueMap } from './../../../utils';
 import { Component, OnInit, Input, HostListener, Output, OnChanges } from '@angular/core';
 import { EcsService } from 'src/ecs.service';
 
@@ -16,7 +17,6 @@ import { CombatHandler } from 'src/app/systems/combat-handler';
 import { TimeFlow } from 'src/app/systems/time-flow';
 import { AIController } from 'src/app/systems/ai-controller';
 
-import * as clone from 'clone';
 import { GameEnder } from 'src/app/systems/game-ender';
 import { Subject } from 'rxjs';
 import { Spawn } from 'src/app/systems/spawn';
@@ -24,6 +24,7 @@ import { Dismantle } from 'src/app/systems/dismantle';
 import { randomPosInRoom } from 'src/rot-utils';
 import { PixiRendererService } from './pixi-renderer.service';
 import { Lighting } from 'src/app/systems/lighting';
+import { MoveResultHandler } from 'src/app/systems/move-result-handler';
 
 @Component({
   selector: 'app-play',
@@ -60,12 +61,15 @@ export class PlayComponent implements OnInit, OnChanges {
     this.ecs.addSystem( new CombatHandler() );
     this.ecs.addSystem( new Dismantle() );
     this.ecs.addSystem( new Movement() );
+    this.ecs.addSystem( new MoveResultHandler() );
     this.ecs.addSystemAndUpdate( new FOVManager() );
     this.ecs.addSystemAndUpdate( new DijkstraCalculator() );
     this.ecs.addSystem( new Projectiles(this.renderService) );
     this.ecs.addSystem( new Reaper() );
     this.ecs.addSystem( new TimeFlow() );
     this.ecs.addSystem( new GameEnder(() => this.playFinished.next()) );
+
+    this.ecs.setAnimScheduler( new AnimationScheduler(this.renderService) );
 
     this.placePortal(this.ecs.em.get(this.playerId).component(DijkstraMap).distanceMap, this.ecs.em);
 
@@ -118,6 +122,7 @@ export class PlayComponent implements OnInit, OnChanges {
     let playerPos = new Position(playerRoom.getCenter()[0], playerRoom.getCenter()[1], 0);
     console.log(`player pos: ${playerRoom.getCenter()}`);
     this.playerId = this.createPlayer(playerPos, em);
+    console.log(`Player ID: ${this.playerId}`);
 
     em.createEntity(
       new Position(playerPos.x - 1, playerPos.y, 0),

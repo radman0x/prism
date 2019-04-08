@@ -1,3 +1,4 @@
+import { AnimationScheduler } from './app/systems/animation-scheduler';
 import { Position } from './app/components.model';
 import { Injectable } from '@angular/core';
 
@@ -11,6 +12,8 @@ export class EcsService {
   public em: EntityManager = new EntityManager();
   private systems: System[] = [];
 
+  private animScheduler: AnimationScheduler;
+
   constructor() {
     this.em.indexBy(Position);
    }
@@ -19,14 +22,21 @@ export class EcsService {
     this.systems.push(s);
   }
 
+  setAnimScheduler(scheduler: AnimationScheduler): void {
+    this. animScheduler = scheduler;
+  }
+
   addSystemAndUpdate(s: System): void {
     s.update(this.em);
     this.systems.push(s);
   }
 
-  update() {
+  update(animPush = false) {
     for (let s of this.systems) {
       s.update(this.em);
+    }
+    if (animPush) {
+      this.animScheduler.update(this.em);
     }
   }
 }

@@ -46,6 +46,10 @@ export class Position extends Component {
     return new Position(newCoord.x, newCoord.y, newCoord.z);
   }
 
+  multiply(scale: number): Position {
+    return Position.fromCoord(this.coord.multiply(scale));
+  }
+
   hash(): string {
     return `${this.x},${this.y},${this.z}`;
   }
@@ -281,9 +285,31 @@ export class LightSource extends Component {
     super();
   }
 }
+
 export class LightLevel extends Component {
   constructor(
     public readonly level: [number, number, number]
+  ) {
+    super();
+  }
+}
+
+export class MoveResult extends Component {
+  constructor(
+    public readonly source: Position,
+    public readonly destination: Position
+  ) {
+    super();
+  }
+}
+
+export class MoveAnimation extends Component {
+  constructor(
+    public readonly start: Position,
+    public readonly end: Position,
+    public readonly durationMs: number,
+    public readonly image: string,
+    public readonly hideExisting: boolean = true
   ) {
     super();
   }

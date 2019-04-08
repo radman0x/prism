@@ -21,8 +21,8 @@ export class PlayerControl implements InputHandler {
   handleKey(key: string): boolean {
     if ( key === '5' || key === '.') {
         this.ecs.em.setComponent(this.playerId, new IncrementTime(100));
-        this.ecs.update(); // hack for testing
-        this.ecs.update();
+        // this.ecs.update(); // hack for testing
+        this.ecs.update(true);
         return false;
     }
 
@@ -37,7 +37,7 @@ export class PlayerControl implements InputHandler {
 
       this.ecs.em.setComponent(this.playerId, new IncrementTime(100));
       this.ecs.update(); // for player
-      this.ecs.update(); // for AI
+      this.ecs.update(true); // for AI
     }
     return false; 
   }
