@@ -105,7 +105,7 @@ export class Health extends Component {
   }
 }
 
-export enum KnownState   {
+export enum KnownState {
   UNKNOWN,
   CURRENT,
   REMEMBERED
@@ -122,14 +122,6 @@ export class Knowledge extends Component {
 export class Sight extends Component {
   constructor(
     public readonly range: number
-  ) {
-    super();
-  }
-}
-
-export class ClearRender extends Component {
-  constructor(
-    public readonly clearId: number
   ) {
     super();
   }

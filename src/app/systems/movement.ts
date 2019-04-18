@@ -17,7 +17,6 @@ export class Movement implements System {
 
       em.removeComponent(e.id(), PhysicalMove);
 
-
     }, PhysicalMove, Position);
   }
 

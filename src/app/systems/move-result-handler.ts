@@ -10,9 +10,8 @@ export class MoveResultHandler implements System {
 
     const player: Entity | null = em.matching(Player, DijkstraMap).reduce( (accum, curr) => curr, null);
     const knowledge = player.component(Knowledge);
-    console.log(knowledge);
     em.each( (resultEntity: Entity, mr: MoveResult, r: Renderable, p: Position) => {
-      console.log(`checking position in knowledge: ${p.hash()}`);
+      // console.log(`checking position in knowledge: ${p.hash()}`);
 
       if (knowledge.positions.has(p)) {
         em.setComponent(
@@ -20,7 +19,7 @@ export class MoveResultHandler implements System {
           new MoveAnimation(
             mr.source, 
             mr.destination, 
-            75,
+            70,
             r.image)
         );
       }

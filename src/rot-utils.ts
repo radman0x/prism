@@ -19,6 +19,6 @@ export function randomPosInRoom(
     }
   }
 
-  console.log(`providing random pos, from ${roomCells.length} candidates`);
+  // console.log(`providing random pos, from ${roomCells.length} candidates`);
   return randomElement(roomCells);
 }

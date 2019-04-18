@@ -1,6 +1,6 @@
 import { CompositeLink } from './../components.model';
 import { System, EntityManager, Entity } from 'rad-ecs';
-import { Health, ClearRender } from '../components.model';
+import { Health } from '../components.model';
 
 export class Reaper implements System {
   constructor() {}
@@ -22,8 +22,5 @@ export class Reaper implements System {
   }
   private removeSingle(id: number, em: EntityManager): void {
     em.removeEntity(id);
-    em.createEntity(
-      new ClearRender(id)
-    );
   }
 }

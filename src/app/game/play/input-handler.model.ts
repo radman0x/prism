@@ -1,5 +1,7 @@
+import { PixiRendererService } from './pixi-renderer.service';
+import { MoveAnimation } from './../../components.model';
 import { EntityManager, Entity } from 'rad-ecs';
-import { Position, Physical, PhysicalMove, Renderable, ClearRender, Knowledge, KnownState, Size, IncrementTime } from 'src/app/components.model';
+import { Position, Physical, PhysicalMove, Renderable, Knowledge, KnownState, Size, IncrementTime } from 'src/app/components.model';
 import { DIR_VECTORS, DIR_FROM_KEY } from './../../../utils';
 import { EcsService } from 'src/ecs.service';
 
@@ -15,6 +17,7 @@ export class PlayerControl implements InputHandler {
   constructor(
     private playerId: number,
     private ecs: EcsService,
+    private renderService: PixiRendererService,
     private changeState: (s: InputHandler) => void
   ) {}
 
@@ -35,6 +38,12 @@ export class PlayerControl implements InputHandler {
         )
       );
 
+      this.ecs.em.each( (e: Entity, ma: MoveAnimation) => {
+        this.ecs.em.removeComponent(e.id(), MoveAnimation);
+      }, MoveAnimation);
+
+      this.renderService.updateViewState(true);
+
       this.ecs.em.setComponent(this.playerId, new IncrementTime(100));
       this.ecs.update(); // for player
       this.ecs.update(true); // for AI
@@ -53,6 +62,7 @@ export class ChooseTarget implements InputHandler {
     private playerId: number,
     private callback: (origin: Position, target: Position, dir: Position) => void,
     private ecs: EcsService,
+    private renderService: PixiRendererService,
     private changeState: (s: InputHandler) => void
   ) {
     this.updateDisplay();
@@ -99,9 +109,6 @@ export class ChooseTarget implements InputHandler {
   private cleanup(): void {
     const removeClear = (id: number) => {
       this.ecs.em.removeEntity(id);
-      this.ecs.em.createEntity(
-        new ClearRender(id)
-      )
     };
     if (this.displayId) {
       removeClear(this.displayId);
@@ -113,7 +120,7 @@ export class ChooseTarget implements InputHandler {
   }
 
   private leave(): void {
-    this.changeState(new PlayerControl(this.playerId, this.ecs, this.changeState));
+    this.changeState(new PlayerControl(this.playerId, this.ecs, this.renderService, this.changeState));
   }
 
   private updateDisplay(): void {

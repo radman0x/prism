@@ -69,13 +69,14 @@ export class PlayComponent implements OnInit, OnChanges {
     this.ecs.addSystem( new TimeFlow() );
     this.ecs.addSystem( new GameEnder(() => this.playFinished.next()) );
 
-    this.ecs.setAnimScheduler( new AnimationScheduler(this.renderService) );
+    this.ecs.setAnimScheduler( new AnimationScheduler(this.renderService, () => this.ecs.viewStateDirty = true) );
 
     this.placePortal(this.ecs.em.get(this.playerId).component(DijkstraMap).distanceMap, this.ecs.em);
 
     this.inputState = new PlayerControl(
       this.playerId, 
       this.ecs, 
+      this.renderService,
       (h: InputHandler) => this.inputState = h
     );
 
@@ -262,11 +263,13 @@ export class PlayComponent implements OnInit, OnChanges {
             new Physical(Size.SMALL, Dynamism.STATIC)
           );
           this.ecs.em.setComponent(this.playerId, new IncrementTime(100));
+          this.ecs.viewStateDirty = true;
           this.ecs.update();
-          this.ecs.update();
+          this.ecs.update(true);
 
         },
         this.ecs, 
+        this.renderService,
         changeState
       );
       return;

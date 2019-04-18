@@ -6,25 +6,30 @@ import { PixiRendererService, MoveAnim } from '../game/play/pixi-renderer.servic
 
 export class AnimationScheduler implements System {
   constructor(
-    private render: PixiRendererService
+    private render: PixiRendererService,
+    private signalDirty: () => {}
   ) {}
 
   update(em: EntityManager): void {
-    console.log(`anim schedule update)`);
+    // console.log(`anim schedule update`);
+    let anyAnimsAdded = false;
     em.each( (animEntity: Entity, ma: MoveAnimation) => {
-      let renderable = (ma.hideExisting ? animEntity.id() : undefined);
-      console.log(`pushing move animation`);
-      this.render.pushMoveAnimation(
-        new MoveAnim(
-          ma.start, 
-          ma.end, 
-          ma.durationMs, 
-          ma.image, 
-          renderable
-        )
-      );
-      em.removeComponent(animEntity.id(), MoveAnimation);
+      // console.log(`pushing move animation`);
+      // this.render.pushMoveAnimation(
+      //   new MoveAnim(
+      //     animEntity.id(),
+      //     ma.start, 
+      //     ma.end, 
+      //     ma.durationMs
+      //   )
+      // );
+      anyAnimsAdded = true;
+      // em.removeComponent(animEntity.id(), MoveAnimation);
     }, 
     MoveAnimation);
+
+    if ( ! anyAnimsAdded ) {
+      this.signalDirty();
+    }
   }
 }

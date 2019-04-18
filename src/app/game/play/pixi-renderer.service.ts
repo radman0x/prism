@@ -1,28 +1,28 @@
 import { Injectable } from '@angular/core';
 import { EcsService } from 'src/ecs.service';
-import { Entity } from 'rad-ecs';
-import { ClearRender, Renderable, Position, Knowledge, Physical, KnownState, Dynamism, LightLevel } from 'src/app/components.model';
+import { Entity, ComponentChange } from 'rad-ecs';
+import {  Renderable, Position, Knowledge, Physical, KnownState, Dynamism, LightLevel, MoveAnimation } from 'src/app/components.model';
 import { randomInt, Dimensions } from 'src/utils';
+
+const deepEqual = require('fast-deep-equal');
 
 import * as PIXI from 'pixi.js';
 import * as ROT from 'rot-js';
+import { Subscription } from 'rxjs';
 
 export class MoveAnim {
   constructor(
+    public entityId: number,
     public start: Position,
     public end: Position,
     public durationMs: number,
-    public image: string,
-    public renderableId: number | undefined = undefined
   ) {}
 }
 
 class MoveProgress {
   constructor(
-    public sprite: PIXI.Sprite,
     public currentTime: number, 
     public startPos: Position,
-    public hideId: number
   ) {}
 }
 
@@ -41,21 +41,26 @@ export class PixiRendererService {
   private textures: PIXI.ITextureDictionary;
   private smallTextures: PIXI.ITextureDictionary;
 
-  private spriteRegister = new Map<number, PIXI.Sprite>();
+  private viewState = new Map<number, {sprite: PIXI.Sprite, hide: boolean}>();
   // private dijkstraRegister = new Map<Position, PIXI.Sprite>();
   private lightRegister = new Map<number, PIXI.Sprite>();
 
   private targetRenderSize: Dimensions;
 
-  private animations: {id: number, anim: MoveAnim}[] = [];
   private runningAnims = new Map<number, MoveProgress>();
   private animCounter: number = 0;
+
+  private spriteCreateSubscription: Subscription;
 
   constructor(
     private ecs: EcsService
   ) { }
 
   init(width: number, height: number): void {
+    if ( this.spriteCreateSubscription ) {
+      this.spriteCreateSubscription.unsubscribe();
+    }
+
     this.targetRenderSize = new Dimensions(width, height);
 
     PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
@@ -70,15 +75,18 @@ export class PixiRendererService {
       .load(() => {
       this.textures = this.pixiApp.loader.resources[this.PRISM_SPRITE_SHEET].textures;
       this.smallTextures = this.pixiApp.loader.resources[this.SMALLER_SPRITE_SHEET].textures;
-      this.pixiApp.ticker.add( () => this.renderLoop() );
+      this.ecs.em.each(
+        (e: Entity, r: Renderable) => {
+          this.updateSpriteRegister(e.id(), r);
+        }, Renderable
+      );
+  
+      this.spriteCreateSubscription = this.ecs.em.monitorComponentType(Renderable, (change: ComponentChange<Renderable>) => this.updateSpriteRegister(change.id, change.c));
+
+      this.pixiApp.ticker.add( () => this.doRenderCycle() );
     });
 
     this.setPixiScale(width, height);
-  }
-
-  pushMoveAnimation(anim: MoveAnim): void {
-    console.log(`Move animation being pushed`);
-    this.animations.push( {id: this.animCounter++, anim: anim} );
   }
 
   running(): boolean {
@@ -110,20 +118,81 @@ export class PixiRendererService {
     this.pixiApp.stage.scale.set(scale, scale);
   }
 
-  private renderLoop(): void {
-    const dt = this.pixiApp.ticker.deltaMS;
+  doRenderCycle(): void {
+    this.updateViewState();
+    this.handleAnimations();
+    this.renderLoop();
+  }
 
+  updateViewState(force = false): void {
+    if ( this.ecs.viewStateDirty || force) {
+      console.log(`building view state`);
+      this.ecs.em.each( (e: Entity, p: Position, r: Renderable) => {
+        
+        let entry = this.viewState.get(e.id());
+        entry.hide = false;
+        entry.sprite.position.set(...this.modelToViewPos(p));
+        this.adjustSprite(entry.sprite, e.id(), r, p);
+
+      }, Position, Renderable);
+
+      this.ecs.viewStateDirty = false;
+    }
+  }
+
+  private updateSpriteRegister(id: number, r?: Renderable) {
+    if ( ! r ) {
+      console.log(`removing sprite from view state`);
+      this.viewState.delete(id);
+      this.runningAnims.delete(id);
+    } else {
+      // console.log(`Creating new sprite in view state`);
+      const texture = r.smaller ? this.smallTextures[r.image] : this.textures[r.image];
+      let sprite = new PIXI.Sprite(texture);
+      this.viewState.set(id, {sprite: sprite, hide: true});
+    }
+  }
+
+  private handleAnimations(): void {
+    const dt = this.pixiApp.ticker.elapsedMS;
+    let toRemove: number[] = [];
+    let count = 0;
+    this.ecs.em.each((e: Entity, anim: MoveAnimation) => {
+      let progress = this.runningAnims.get(e.id());
+      if ( ! progress || ! deepEqual(progress.startPos, anim.start) ) {
+        progress = new MoveProgress(0, anim.start);
+        this.runningAnims.set(e.id(), progress);
+
+      } else if (count === 0) {
+        progress.currentTime += dt;
+        let sprite = this.viewState.get(e.id()).sprite;
+        if ( progress.currentTime <= anim.durationMs ) {
+          // console.log(`moving`)
+          const vecToTarget = anim.start.subtract(anim.end);
+          const elapsedSecs = progress.currentTime;
+          const progressRatio = elapsedSecs / anim.durationMs;
+          // console.log(`progress: ${progressRatio}`);
+          const {x, y} = vecToTarget.multiply(progressRatio * this.TILE_SIZE).add(anim.start.multiply(this.TILE_SIZE));
+  
+          sprite.position.set(x, y);
+  
+        } else {
+          // console.log(`current: ${progress.currentTime} vs length: ${anim.durationMs}`);
+          sprite.position.set(anim.end.x * this.TILE_SIZE, anim.end.y * this.TILE_SIZE);
+          toRemove.push(e.id());
+          this.runningAnims.delete(e.id());
+          this.ecs.em.removeComponent(e.id(), MoveAnimation);
+        }
+      }
+      ++count;
+    }, MoveAnimation);
+
+  }
+
+  private renderLoop(): void {
     this.pixiApp.stage.destroy();
     this.pixiApp.stage = new PIXI.Container();
 
-    this.ecs.em.each( (e: Entity, cr: ClearRender) => {
-      let clearSprite = this.spriteRegister.get(cr.clearId);
-      if (clearSprite) {
-        clearSprite.destroy();
-        this.spriteRegister.delete(cr.clearId);
-      }
-      this.ecs.em.removeEntity(e.id());
-    }, ClearRender);
 
     let renderables = this.ecs.em.matching(Renderable, Position);
     renderables.sort( (lhs: Entity, rhs: Entity) => lhs.component(Renderable).zOrder - rhs.component(Renderable).zOrder);
@@ -133,19 +202,18 @@ export class PixiRendererService {
 
     for (const e of renderables) {
       const [r, p] = e.components(Renderable, Position);
-      const y = e.has(Physical) ? e.component(Physical) : null;
-      let sprite = this.spriteRegister.get(e.id());
-      if ( ! sprite ) {
-        const texture = r.smaller ? this.smallTextures[r.image] : this.textures[r.image];
-        // console.log(`creating new texture: ${r.image}`);
-        sprite = new PIXI.Sprite(texture);
-        this.spriteRegister.set(e.id(), sprite);
+      const phy = e.has(Physical) ? e.component(Physical) : null;
+      let {sprite, hide} = this.viewState.get(e.id());
+      if ( hide ) {
+        continue;
       }
-
-      this.adjustSprite(sprite, e.id(), r, p);
+      if ( ! sprite ) {
+        console.error(`Got renderable with no active sprite!`);
+        console.error(`Entity: ${e.id()}, image: ${r.image}`);
+      }
       this.pixiApp.stage.addChild(sprite);
 
-      if (positionKnowledge && y) {
+      if (positionKnowledge && phy) {
         const modRgbString = (rgb: string) => '0x' + rgb.slice(1);
         const convertRgb = (rgb: [number, number, number]) => modRgbString(ROT.Color.toHex(rgb));
         const colorAdder = (cs: string, rgbVals: [number, number, number]): string => {
@@ -156,82 +224,26 @@ export class PixiRendererService {
         };
         const currPos = new Position(p.x, p.y, 0);
         const posKnown = positionKnowledge.get(currPos);
-        const lightLevel = this.ecs.em.matchingIndex(currPos)
-          .filter( (e: Entity) => e.has(LightLevel))
-          .reduce( (accum, curr) => curr, null);
+        const lightLevel = this.ecs.em.matchingIndex(currPos).filter( (e: Entity) => e.has(LightLevel))
+                                                             .reduce( (accum, curr) => curr, null);
         
-        if (posKnown === undefined || this.runningAnims.has(e.id())) {
-          sprite.visible = false;
-        } else {
-          switch (posKnown) {
-            case KnownState.CURRENT:
-              sprite.visible = true;
-              const lightRgb = lightLevel ? +convertRgb(lightLevel.component(LightLevel).level) : +'0x000000';
-              sprite.tint = lightRgb;
-              break;
-            case KnownState.REMEMBERED:
-              if (y.dynamism === Dynamism.STATIC) {
-                sprite.visible = true;
-                const lightRgb = lightLevel ? +convertRgb(lightLevel.component(LightLevel).level) : +'0x000000';
-                sprite.tint = lightRgb;
-              } else {
-                sprite.visible = false;
-              }
-              break;
+        if (posKnown === KnownState.CURRENT) {
+          sprite.visible = true;
+          const lightRgb = lightLevel ? +convertRgb(lightLevel.component(LightLevel).level) : +'0x000000';
+          sprite.tint = lightRgb;
+        } else if (posKnown === KnownState.REMEMBERED) {
+          if (phy.dynamism === Dynamism.STATIC) {
+            sprite.visible = true;
+            const lightRgb = lightLevel ? +convertRgb(lightLevel.component(LightLevel).level) : +'0x000000';
+            sprite.tint = lightRgb;
+          } else {
+            sprite.visible = false;
           }
+        } else {
+          sprite.visible = false;
         }
       }
     } // display of Renderables
-
-    // handle animations
-    for (let [index, animation] of this.animations.entries()) {
-      let progress = this.runningAnims.get(animation.anim.renderableId);
-      if ( ! progress ) {
-        console.log(`creating new sprite for animation`);
-        const sprite = new PIXI.Sprite(this.textures[animation.anim.image]);
-        progress = new MoveProgress(
-          sprite,
-          0,
-          animation.anim.start,
-          animation.anim.renderableId
-        );
-        console.log(`adding anim to running`);
-        this.runningAnims.set(animation.anim.renderableId, progress);
-      }
-
-      if ( index === 0 ) {
-        progress.currentTime += dt;
-        
-        if ( progress.currentTime < animation.anim.durationMs ) {
-  
-          if (progress.hideId !== undefined) {
-            let hideImage = this.spriteRegister.get(progress.hideId);
-            if ( hideImage ) {
-              hideImage.visible = false;
-            }
-          }
-  
-          const vecToTarget = animation.anim.start.subtract(animation.anim.end);
-          const elapsedSecs = progress.currentTime;
-          const progressRatio = elapsedSecs / animation.anim.durationMs;
-          const {x, y} = vecToTarget.multiply(progressRatio * this.TILE_SIZE).add(animation.anim.start.multiply(this.TILE_SIZE));
-  
-          progress.sprite.position.set(x, y);
-          this.pixiApp.stage.addChild(progress.sprite);
-  
-        } else {
-          console.log(`REMOVING animation sprite`);
-          progress.sprite.destroy();
-          this.runningAnims.delete(animation.anim.renderableId);
-          this.animations.splice(0, 1);
-        }
-
-      } else {
-        const startPos = animation.anim.start.multiply(this.TILE_SIZE);
-        progress.sprite.position.set(startPos.x, startPos.y);
-        this.pixiApp.stage.addChild(progress.sprite);
-      }
-    }
 
     this.setPixiScale(this.targetRenderSize.width, this.targetRenderSize.height);
 
@@ -249,7 +261,7 @@ export class PixiRendererService {
     //     );
     //     text.position.set(
     //       c.x * this.TILE_SIZE + (this.TILE_SIZE * 0.5),
-    //       c.y * this.TILE_SIZE + (this.TILE_SIZE * 0.5)
+    //       c.phy * this.TILE_SIZE + (this.TILE_SIZE * 0.5)
     //     );
     //     text.scale.set(0.15, 0.15);
     //     text.anchor.set(0.5, 0.5);
@@ -294,4 +306,7 @@ export class PixiRendererService {
     }
   }
 
+  private modelToViewPos(pos: Position): [number, number] {
+    return [pos.x * this.TILE_SIZE, pos.y * this.TILE_SIZE];
+  }
 }

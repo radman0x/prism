@@ -1,8 +1,8 @@
 import { AnimationScheduler } from './app/systems/animation-scheduler';
-import { Position } from './app/components.model';
+import { Position, Renderable } from './app/components.model';
 import { Injectable } from '@angular/core';
 
-import { EntityManager, System } from 'rad-ecs';
+import { EntityManager, System, ComponentChange } from 'rad-ecs';
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +11,7 @@ export class EcsService {
   
   public em: EntityManager = new EntityManager();
   private systems: System[] = [];
+  public viewStateDirty = true;
 
   private animScheduler: AnimationScheduler;
 
