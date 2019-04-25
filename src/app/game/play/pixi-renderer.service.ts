@@ -81,7 +81,10 @@ export class PixiRendererService {
         }, Renderable
       );
   
-      this.spriteCreateSubscription = this.ecs.em.monitorComponentType(Renderable, (change: ComponentChange<Renderable>) => this.updateSpriteRegister(change.id, change.c));
+      this.spriteCreateSubscription = this.ecs.em.monitorComponentType(
+        Renderable, 
+        (change: ComponentChange<Renderable>) => this.updateSpriteRegister(change.id, change.c)
+      );
 
       this.pixiApp.ticker.add( () => this.doRenderCycle() );
     });
@@ -158,6 +161,7 @@ export class PixiRendererService {
     let toRemove: number[] = [];
     let count = 0;
     this.ecs.em.each((e: Entity, anim: MoveAnimation) => {
+      console.log(`got move anim`);
       let progress = this.runningAnims.get(e.id());
       if ( ! progress || ! deepEqual(progress.startPos, anim.start) ) {
         progress = new MoveProgress(0, anim.start);
@@ -165,19 +169,21 @@ export class PixiRendererService {
 
       } else if (count === 0) {
         progress.currentTime += dt;
-        let sprite = this.viewState.get(e.id()).sprite;
+        let spriteState = this.viewState.get(e.id());
+        spriteState.hide = false;
+        let sprite = spriteState.sprite;
         if ( progress.currentTime <= anim.durationMs ) {
-          // console.log(`moving`)
+          console.log(`moving`)
           const vecToTarget = anim.start.subtract(anim.end);
           const elapsedSecs = progress.currentTime;
           const progressRatio = elapsedSecs / anim.durationMs;
-          // console.log(`progress: ${progressRatio}`);
+          console.log(`progress: ${progressRatio}`);
           const {x, y} = vecToTarget.multiply(progressRatio * this.TILE_SIZE).add(anim.start.multiply(this.TILE_SIZE));
   
           sprite.position.set(x, y);
   
         } else {
-          // console.log(`current: ${progress.currentTime} vs length: ${anim.durationMs}`);
+          console.log(`current: ${progress.currentTime} vs length: ${anim.durationMs}`);
           sprite.position.set(anim.end.x * this.TILE_SIZE, anim.end.y * this.TILE_SIZE);
           toRemove.push(e.id());
           this.runningAnims.delete(e.id());

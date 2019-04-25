@@ -152,6 +152,8 @@ export class ChooseTarget implements InputHandler {
       }
     );
 
+    this.ecs.viewStateDirty = true;
+
   }
 
   private posVisible(pos: Position): boolean {

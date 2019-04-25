@@ -1,6 +1,6 @@
 
 import { System, EntityManager, Entity } from 'rad-ecs';
-import { Health, ClearRender, Destructible, PhysicalMove, AI, Combat } from '../components.model';
+import { Health, Destructible, PhysicalMove, AI, Combat } from '../components.model';
 
 export class Dismantle implements System {
   constructor() {}

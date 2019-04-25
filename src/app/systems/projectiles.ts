@@ -1,4 +1,4 @@
-import { Physical, Size, Renderable, Aimed, Health } from './../components.model';
+import { Physical, Size, Renderable, Aimed, Health, MoveAnimation } from './../components.model';
 import { Position } from 'src/app/components.model';
 import { System, EntityManager, Entity } from 'rad-ecs';
 import { Velocity } from '../components.model';
@@ -77,8 +77,14 @@ export class Projectiles implements System {
           if ( ! this.fillAtPos(pos, em)) {
             em.createEntity(
               new Renderable('yellow-ball.png', 2, undefined, true),
-              pos
+              pos,
+              new MoveAnimation(
+                new Position(p.x, p.y, 0), 
+                pos, 
+                70,
+                ``)
             );
+
             break;
           }
         }
@@ -86,7 +92,6 @@ export class Projectiles implements System {
       } else {
         console.log(`projectile failed to strike anything`);
       }
-
 
       em.removeEntity(e.id());
 

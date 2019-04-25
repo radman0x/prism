@@ -1,10 +1,6 @@
 import { Component, OnInit, Input, AfterViewInit, ViewChild, ElementRef, OnChanges, OnDestroy } from '@angular/core';
-import { Dimensions, randomInt } from 'src/utils';
+import { Dimensions } from 'src/utils';
 
-import * as PIXI from 'pixi.js';
-import { EcsService } from 'src/ecs.service';
-import { Entity } from 'rad-ecs';
-import { Renderable, Position, Knowledge, KnownState, Dynamism, Physical, ClearRender, DijkstraMap } from 'src/app/components.model';
 import { PixiRendererService } from '../pixi-renderer.service';
 
 @Component({
