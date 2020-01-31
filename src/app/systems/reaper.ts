@@ -18,7 +18,7 @@ export class Reaper implements System {
     for (let childId of e.has(CompositeLink) ? e.component(CompositeLink).childIds : []) {
       this.removeAll(em.get(childId), em);
     }
-    this.removeSingle(e.id(), em);    
+    this.removeSingle(e.id, em);    
   }
   private removeSingle(id: number, em: EntityManager): void {
     em.removeEntity(id);

@@ -23,7 +23,7 @@ export class FOVManager implements System {
         return blocking.length === 0;
       });
   
-      let viewer = em.get(e.id());
+      let viewer = em.get(e.id);
       let viewPos = viewer.component(Position);
       let knowledge: ValueMap<Position, KnownState>;
       knowledge = viewer.has(Knowledge) ? clone(viewer.component(Knowledge).positions) : new ValueMap<Position, KnownState>();
@@ -53,7 +53,7 @@ export class FOVManager implements System {
 
       
     
-      em.setComponent(e.id(), new Knowledge(knowledge));
+      em.setComponent(e.id, new Knowledge(knowledge));
     }, Sight);
   }
 }

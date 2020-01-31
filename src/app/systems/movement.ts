@@ -11,11 +11,11 @@ export class Movement implements System {
       let floorAtTarget = this.fillAtPos(floorPos, em);
       let blockageAtTarget = this.fillAtPos(pm.target, em);
       if ( floorAtTarget && ! blockageAtTarget ) {
-        em.setComponent(e.id(), pm.target);
-        em.setComponent(e.id(), new MoveResult(p, pm.target));
+        em.setComponent(e.id, pm.target);
+        em.setComponent(e.id, new MoveResult(p, pm.target));
       }
 
-      em.removeComponent(e.id(), PhysicalMove);
+      em.removeComponent(e.id, PhysicalMove);
 
     }, PhysicalMove, Position);
   }
